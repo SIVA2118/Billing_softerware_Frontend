@@ -1,0 +1,64 @@
+{
+    "name": "invoice-frontend",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "main": "electron/main.cjs",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "build:desktop": "cross-env VITE_API_BASE_URL=https://agencies-billing.onrender.com/api vite build --base=./",
+        "preview": "vite preview",
+        "electron:dev": "concurrently -k \"vite\" \"wait-on tcp:3000 && electron .\"",
+        "desktop:pack": "npm run build:desktop && electron-packager . \"Billing System Premium\" --platform=win32 --arch=x64 --out=release --overwrite --prune=true --icon=./public/billflow_256.ico",
+        "desktop:dist": "npm run desktop:pack",
+        "installer:win": "npm run build:desktop && electron-builder --win nsis",
+        "installer:portable": "npm run build:desktop && electron-builder --win portable"
+    },
+    "dependencies": {
+        "axios": "^1.3.4",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-hot-toast": "^2.4.0",
+        "react-router-dom": "^6.9.0"
+    },
+    "devDependencies": {
+        "@electron/packager": "^18.3.6",
+        "@vitejs/plugin-react": "^3.1.0",
+        "concurrently": "^9.2.1",
+        "cross-env": "^10.0.0",
+        "electron": "^37.2.0",
+        "electron-builder": "^25.1.8",
+        "png-to-ico": "^3.0.1",
+        "vite": "^4.2.0",
+        "wait-on": "^9.0.1"
+    },
+    "build": {
+        "appId": "com.billflow.premium",
+        "productName": "Billing System Premium",
+        "directories": {
+            "output": "installer-output"
+        },
+        "files": [
+            "dist/**/*",
+            "electron/**/*",
+            "public/**/*",
+            "package.json"
+        ],
+        "win": {
+            "target": [
+                "nsis",
+                "portable"
+            ],
+            "icon": "public/billflow_256.ico",
+            "signAndEditExecutable": false
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "Billing System Premium"
+        }
+    }
+}
