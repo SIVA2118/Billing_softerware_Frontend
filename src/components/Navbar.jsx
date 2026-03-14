@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 const pageTitles = {
     '/': 'Invoices',
@@ -30,10 +30,6 @@ export default function Navbar({ onMenuToggle, onThemeToggle, theme }) {
                 <button type="button" style={S.themeBtn} onClick={onThemeToggle}>
                     {theme === 'dark' ? 'Light mode' : 'Dark mode'}
                 </button>
-                <Link to="/new" className="navbar-cta" style={S.btnNew}>
-                    <span style={S.btnIcon}>+</span>
-                    <span className="navbar-cta-label">New Invoice</span>
-                </Link>
             </div>
         </nav>
     );
@@ -86,21 +82,5 @@ const S = {
         borderRadius: '8px',
         fontWeight: 500, fontSize: '0.78rem',
         letterSpacing: '0.3px',
-    },
-    btnNew: {
-        display: 'inline-flex', alignItems: 'center', gap: '7px',
-        background: 'var(--accent-button-bg)',
-        border: '1px solid var(--accent-button-border)',
-        color: 'var(--gold)',
-        padding: '8px 18px',
-        borderRadius: '8px',
-        fontWeight: 500, fontSize: '0.8rem',
-        letterSpacing: '0.3px',
-        transition: 'all 0.2s',
-        boxShadow: 'var(--shadow-gold)',
-    },
-    btnIcon: {
-        fontSize: '1rem', lineHeight: 1,
-        fontWeight: 300,
     },
 };
