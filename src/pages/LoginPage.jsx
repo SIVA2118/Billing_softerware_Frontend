@@ -177,7 +177,7 @@ const S = {
         position: 'absolute', inset: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Cormorant Garamond, Georgia, serif',
-        fontSize: '2rem', fontWeight: 700, color: '#c9a84c',
+        fontSize: '2rem', fontWeight: 700, color: '#3b82f6',
     },
     appName: {
         margin: '0 0 12px',
@@ -196,7 +196,7 @@ const S = {
     },
     features: { display: 'flex', flexDirection: 'column', gap: '16px' },
     featureItem: { display: 'flex', alignItems: 'center', gap: '14px' },
-    featureIcon: { fontSize: '0.85rem', color: '#c9a84c', opacity: 0.7, width: '18px', textAlign: 'center', flexShrink: 0 },
+    featureIcon: { fontSize: '0.85rem', color: '#3b82f6', opacity: 0.7, width: '18px', textAlign: 'center', flexShrink: 0 },
     featureText: { color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 300, letterSpacing: '0.2px' },
     right: {
         width: '460px', minWidth: '400px',

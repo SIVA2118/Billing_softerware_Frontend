@@ -149,7 +149,7 @@ const S = {
     },
     brandMarkText: {
         fontSize: '1.2rem', fontWeight: 700,
-        color: '#c9a84c',
+        color: '#3b82f6',
         fontFamily: 'Cormorant Garamond, Georgia, serif',
     },
     brandName: {
@@ -192,7 +192,7 @@ const S = {
         position: 'absolute',
         left: 0, top: '4px', bottom: '4px',
         width: '2px',
-        background: 'linear-gradient(180deg, var(--gold-light, #e4c56a), var(--gold, #c9a84c))',
+        background: 'linear-gradient(180deg, var(--gold-light, #60a5fa), var(--gold, #3b82f6))',
         borderRadius: '0 2px 2px 0',
     },
     navIcon: {
@@ -205,7 +205,7 @@ const S = {
     navLabelActive: { color: 'var(--text-primary)', fontWeight: 500 },
     activeDot: {
         width: '4px', height: '4px',
-        background: '#c9a84c',
+        background: '#3b82f6',
         borderRadius: '50%',
         marginLeft: 'auto',
         flexShrink: 0,
@@ -230,7 +230,7 @@ const S = {
         borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         fontFamily: 'Cormorant Garamond, Georgia, serif',
-        fontSize: '0.9rem', fontWeight: 600, color: '#c9a84c',
+        fontSize: '0.9rem', fontWeight: 600, color: '#3b82f6',
         flexShrink: 0,
     },
     footerName: { fontSize: '0.78rem', fontWeight: 500, color: 'var(--text-primary)' },

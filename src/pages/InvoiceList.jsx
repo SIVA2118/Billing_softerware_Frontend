@@ -104,7 +104,7 @@ export default function InvoiceList() {
                 <StatCard
                     label="Total Invoices"
                     value={totalRecords}
-                    accent="#c9a84c"
+                    accent="#3b82f6"
                     icon="◈"
                 />
                 <StatCard
@@ -116,7 +116,7 @@ export default function InvoiceList() {
                 <StatCard
                     label="Tax Collected"
                     value={`₹${totalTax.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`}
-                    accent="#fbbf24"
+                    accent="#60a5fa"
                     icon="%"
                 />
             </div>
@@ -306,8 +306,8 @@ const S = {
         color: 'var(--text-secondary)', fontSize: '0.82rem',
     },
     invoBadge: {
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.18)',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.18)',
         borderRadius: '6px', padding: '4px 10px',
         fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.3px',
     },
@@ -325,19 +325,19 @@ const S = {
         fontSize: '0.72rem', fontWeight: 600,
     },
     amtText: { color: 'var(--text-secondary)' },
-    taxText: { color: '#fbbf24', opacity: 0.8, fontWeight: 500 },
+    taxText: { color: '#60a5fa', opacity: 0.8, fontWeight: 500 },
     totalAmt: { color: '#34d399', fontWeight: 600, fontSize: '0.88rem' },
     actions: { display: 'flex', gap: '6px' },
     btnView: {
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.15)',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.15)',
         padding: '5px 12px', borderRadius: '6px',
         fontSize: '0.72rem', fontWeight: 500, cursor: 'pointer',
         letterSpacing: '0.3px',
     },
     btnEdit: {
-        background: 'rgba(251,191,36,0.08)', color: '#fbbf24',
-        border: '1px solid rgba(251,191,36,0.15)',
+        background: 'rgba(96,165,250,0.08)', color: '#60a5fa',
+        border: '1px solid rgba(96,165,250,0.15)',
         padding: '5px 12px', borderRadius: '6px',
         fontSize: '0.72rem', fontWeight: 500, cursor: 'pointer',
     },
@@ -357,7 +357,7 @@ const S = {
         padding: '80px', textAlign: 'center',
         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
     },
-    emptyIcon: { fontSize: '2rem', color: 'rgba(201,168,76,0.2)' },
+    emptyIcon: { fontSize: '2rem', color: 'rgba(59,130,246,0.2)' },
     emptyText: { color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 },
     paginationBar: {
         display: 'flex',
@@ -367,9 +367,9 @@ const S = {
         marginTop: '16px',
     },
     pageBtn: {
-        background: 'rgba(201,168,76,0.08)',
-        color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.2)',
+        background: 'rgba(59,130,246,0.08)',
+        color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.2)',
         borderRadius: '8px',
         padding: '8px 14px',
         fontSize: '0.78rem',

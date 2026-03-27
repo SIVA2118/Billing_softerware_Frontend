@@ -206,7 +206,7 @@ const S = {
     },
     cardLabel: {
         fontSize: '0.66rem',
-        color: 'rgba(201,168,76,0.65)',
+        color: 'rgba(59,130,246,0.65)',
         textTransform: 'uppercase',
         letterSpacing: '1.3px',
         marginBottom: '6px',
@@ -239,7 +239,7 @@ const S = {
     th: {
         textAlign: 'left',
         padding: '10px 16px',
-        color: 'rgba(201,168,76,0.45)',
+        color: 'rgba(59,130,246,0.45)',
         fontSize: '0.63rem',
         letterSpacing: '1px',
         textTransform: 'uppercase',

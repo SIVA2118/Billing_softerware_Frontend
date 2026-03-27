@@ -119,8 +119,8 @@ const S = {
     cardTitle: { fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: '20px' },
     cardHeaderRow: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' },
     countBadge: {
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.15)',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.15)',
         borderRadius: '20px', padding: '2px 10px', fontSize: '0.68rem', fontWeight: 600,
     },
     form: { display: 'flex', flexDirection: 'column', gap: '16px' },
@@ -144,7 +144,7 @@ const S = {
         border: '1px solid var(--muted-border)',
         background: 'color-mix(in srgb, var(--surface) 92%, transparent)',
     },
-    catIcon: { fontSize: '0.75rem', color: 'rgba(201,168,76,0.3)', flexShrink: 0 },
+    catIcon: { fontSize: '0.75rem', color: 'rgba(59,130,246,0.3)', flexShrink: 0 },
     catName: { flex: 1, fontSize: '0.85rem', color: 'var(--text-primary)', fontWeight: 400 },
     deleteBtn: {
         background: 'none', border: 'none',

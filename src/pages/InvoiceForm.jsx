@@ -447,11 +447,11 @@ const S = {
     td: { padding: '7px 4px', verticalAlign: 'middle' },
     slno: {
         width: '24px', height: '24px', borderRadius: '50%',
-        background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.15)',
+        background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: '0.62rem', fontWeight: 700, color: 'rgba(201,168,76,0.5)',
+        fontSize: '0.62rem', fontWeight: 700, color: 'rgba(59,130,246,0.5)',
     },
-    calcVal: { color: 'rgba(201,168,76,0.6)', fontWeight: 600, fontSize: '0.78rem' },
+    calcVal: { color: 'rgba(59,130,246,0.6)', fontWeight: 600, fontSize: '0.78rem' },
     totalVal: { color: '#34d399', fontWeight: 600, fontSize: '0.82rem' },
     btnRemove: {
         background: 'rgba(248,113,113,0.08)', border: '1px solid rgba(248,113,113,0.12)',

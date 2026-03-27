@@ -132,14 +132,14 @@ const S = {
     },
     cardAccent: {
         height: '1px',
-        background: 'linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent)',
+        background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.3), transparent)',
     },
     cardBody: { padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' },
     cardTop: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' },
     prodName: { fontSize: '0.95rem', fontWeight: 500, color: 'var(--text-primary)', lineHeight: 1.3 },
     prodPrice: {
         fontFamily: 'Cormorant Garamond, Georgia, serif',
-        fontSize: '1.1rem', fontWeight: 600, color: '#c9a84c', flexShrink: 0,
+        fontSize: '1.1rem', fontWeight: 600, color: '#3b82f6', flexShrink: 0,
     },
     categoryChip: {
         alignSelf: 'flex-start',
@@ -150,12 +150,12 @@ const S = {
     },
     metaRow: { display: 'flex', alignItems: 'center', gap: '8px' },
     metaItem: { color: 'var(--text-muted)', fontSize: '0.75rem' },
-    metaDot: { color: 'rgba(201,168,76,0.2)', fontSize: '0.7rem' },
+    metaDot: { color: 'rgba(59,130,246,0.2)', fontSize: '0.7rem' },
     desc: { color: 'var(--text-muted)', fontSize: '0.78rem', margin: 0, lineHeight: 1.5 },
     taxRow: { display: 'flex', gap: '6px', flexWrap: 'wrap' },
     taxChip: {
-        background: 'rgba(201,168,76,0.06)', color: 'rgba(201,168,76,0.5)',
-        border: '1px solid rgba(201,168,76,0.1)',
+        background: 'rgba(59,130,246,0.06)', color: 'rgba(59,130,246,0.5)',
+        border: '1px solid rgba(59,130,246,0.1)',
         borderRadius: '6px', padding: '3px 8px',
         fontSize: '0.68rem', fontWeight: 500,
     },
@@ -168,6 +168,6 @@ const S = {
     deleteBtn: { color: 'rgba(248,113,113,0.6)', background: 'none', border: 'none', fontSize: '0.78rem', fontWeight: 500, cursor: 'pointer' },
     loading: { display: 'flex', justifyContent: 'center', padding: '80px', color: 'var(--text-muted)', fontSize: '0.85rem' },
     emptyState: { textAlign: 'center', padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' },
-    emptyIcon: { fontSize: '2rem', color: 'rgba(201,168,76,0.2)' },
+    emptyIcon: { fontSize: '2rem', color: 'rgba(59,130,246,0.2)' },
     emptyText: { color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 },
 };

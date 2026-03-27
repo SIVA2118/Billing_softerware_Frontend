@@ -144,8 +144,8 @@ const S = {
     },
     countBadge: {
         minWidth: '38px', textAlign: 'center',
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.15)', borderRadius: '20px',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.15)', borderRadius: '20px',
         padding: '4px 10px', fontSize: '0.74rem', fontWeight: 600,
     },
     card: {
@@ -166,13 +166,13 @@ const S = {
     td: { padding: '10px', fontSize: '0.8rem', color: 'var(--text-secondary)' },
     tdStrong: { padding: '10px', fontSize: '0.84rem', color: 'var(--text-primary)', fontWeight: 500 },
     idChip: {
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.18)', borderRadius: '16px',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.18)', borderRadius: '16px',
         padding: '3px 9px', fontSize: '0.72rem', fontWeight: 600,
     },
     billsBtn: {
-        background: 'rgba(201,168,76,0.08)', color: '#c9a84c',
-        border: '1px solid rgba(201,168,76,0.2)', borderRadius: '7px',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.2)', borderRadius: '7px',
         padding: '4px 12px', fontSize: '0.74rem', fontWeight: 600,
         cursor: 'pointer',
     },
@@ -184,6 +184,6 @@ const S = {
     },
     stateText: { color: 'var(--text-muted)', fontSize: '0.82rem' },
     emptyState: { textAlign: 'center', padding: '56px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' },
-    emptyIcon: { fontSize: '1.8rem', color: 'rgba(201,168,76,0.25)' },
+    emptyIcon: { fontSize: '1.8rem', color: 'rgba(59,130,246,0.25)' },
     emptyText: { color: 'var(--text-muted)', fontSize: '0.82rem', margin: 0 },
 };
