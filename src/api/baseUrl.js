@@ -1,5 +1,5 @@
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL;
-const REMOTE_API_BASE_URL = 'http://localhost:5000/api';
+const REMOTE_API_BASE_URL = 'https://agencies-billing.onrender.com/api';
 
 const getDefaultApiBaseUrl = () => {
     if (typeof window === 'undefined') {
