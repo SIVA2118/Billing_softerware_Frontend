@@ -12,5 +12,7 @@ API.interceptors.request.use((config) => {
 });
 
 export const fetchBuyers = () => API.get('/');
+export const fetchBuyerById = (id) => API.get(`/${id}`);
 export const createBuyer = (data) => API.post('/', data);
+export const updateBuyer = (id, data) => API.put(`/${id}`, data);
 export const deleteBuyer = (id) => API.delete(`/${id}`);

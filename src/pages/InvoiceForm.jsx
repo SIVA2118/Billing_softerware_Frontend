@@ -280,6 +280,14 @@ export default function InvoiceForm() {
                         </datalist>
                         <div style={S.helperRow}>
                             <Link to="/buyers" style={S.helperLink}>Manage buyers</Link>
+                            {selectedBuyerId && !buyer.phone && (
+                                <Link
+                                    to={`/buyers/edit/${selectedBuyerId}`}
+                                    style={{ ...S.helperLink, marginLeft: '12px', color: 'rgba(248,113,113,0.6)' }}
+                                >
+                                    ⚠ Phone missing — Edit buyer
+                                </Link>
+                            )}
                         </div>
                     </div>
                     <div />

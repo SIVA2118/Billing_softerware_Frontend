@@ -128,6 +128,112 @@ button { font-family: var(--font-body); cursor: pointer; }
 a { color: inherit; text-decoration: none; }
 input, select, textarea { font-family: var(--font-body); }
 
+.premium-datepicker-calendar {
+  border-radius: 18px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.premium-datepicker-calendar .react-datepicker__header {
+  background: transparent;
+  border-bottom: 1px solid var(--line-medium);
+  padding-bottom: 14px;
+}
+
+.premium-datepicker-calendar .react-datepicker__current-month,
+.premium-datepicker-calendar .react-datepicker__navigation,
+.premium-datepicker-calendar .react-datepicker__day-name,
+.premium-datepicker-calendar .react-datepicker__month-year-select,
+.premium-datepicker-calendar .react-datepicker__month-dropdown,
+.premium-datepicker-calendar .react-datepicker__year-dropdown,
+.premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+.premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  color: var(--text-primary);
+}
+
+.premium-datepicker-calendar .react-datepicker__day {
+  color: var(--text-secondary);
+  border-radius: 12px;
+  width: 42px;
+  line-height: 42px;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--keyboard-selected,
+.premium-datepicker-calendar .react-datepicker__day--selected,
+.premium-datepicker-day-selected {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #fff;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--today {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--outside-month {
+  color: rgba(237,232,219,0.25);
+}
+
+.premium-datepicker-calendar .react-datepicker__navigation:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.billing-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 460px) minmax(420px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.billing-calendar-pane,
+.billing-details-pane {
+  width: 100%;
+}
+
+.billing-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.billing-export-btn {
+  min-width: 190px;
+}
+
+@media (max-width: 1120px) {
+  .billing-calendar-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .billing-export-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .premium-datepicker-calendar {
+    width: 100%;
+    padding: 12px;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__day {
+    width: 38px;
+    line-height: 38px;
+  }
+
+  .billing-calendar-layout {
+    gap: 16px;
+  }
+}
+
 .app-overlay {
   position: fixed;
   inset: 0;

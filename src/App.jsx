@@ -15,6 +15,7 @@ import BuyerForm from './pages/BuyerForm';
 import EmployeeForm from './pages/EmployeeForm';
 import EmployeeList from './pages/EmployeeList';
 import BillAmountPage from './pages/BillAmountPage';
+import BillingCalendar from './pages/BillingCalendar';
 
 const routerFutureConfig = {
     v7_startTransition: true,
@@ -108,9 +109,11 @@ function App() {
                             <Route path="/categories" element={<ProtectedRoute><CategoryList /></ProtectedRoute>} />
                             <Route path="/buyers" element={<ProtectedRoute><BuyerList /></ProtectedRoute>} />
                             <Route path="/buyers/new" element={<ProtectedRoute><BuyerForm /></ProtectedRoute>} />
+                            <Route path="/buyers/edit/:id" element={<ProtectedRoute><BuyerForm /></ProtectedRoute>} />
                             <Route path="/employees" element={<ProtectedRoute><EmployeeList /></ProtectedRoute>} />
                             <Route path="/employees/new" element={<ProtectedRoute><EmployeeForm /></ProtectedRoute>} />
                             <Route path="/bill-amount" element={<ProtectedRoute><BillAmountPage /></ProtectedRoute>} />
+                            <Route path="/billing-calendar" element={<ProtectedRoute><BillingCalendar /></ProtectedRoute>} />
                             <Route path="/products/edit/:id" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
                             <Route path="*" element={<Navigate to="/" />} />
                         </Routes>

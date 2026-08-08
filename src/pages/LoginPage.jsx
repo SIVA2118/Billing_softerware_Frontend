@@ -116,6 +116,11 @@ export default function LoginPage({ onThemeToggle, setToken, setUser, theme }) {
                                     </span>
                                 )}
                             </button>
+                            <div style={{ textAlign: 'center', marginTop: '4px' }}>
+                                <button type="button" onClick={() => navigate('/admin/signup')} style={S.secondaryButton}>
+                                    Create Admin Account
+                                </button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -260,4 +265,15 @@ const S = {
     btnContent: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' },
     btnArrow: { fontSize: '1rem', opacity: 0.7 },
     loadingDot: { fontSize: '0.5rem', opacity: 0.6 },
+    secondaryButton: {
+        background: 'transparent',
+        border: 'none',
+        color: 'var(--text-muted)',
+        fontWeight: 500, fontSize: '0.8rem',
+        letterSpacing: '0.5px',
+        cursor: 'pointer',
+        transition: 'color 0.2s',
+        padding: '8px',
+        textDecoration: 'underline',
+    },
 };

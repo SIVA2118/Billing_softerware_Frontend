@@ -6,6 +6,7 @@ const allNavItems = [
         { to: '/', label: 'Invoices', icon: '◈' },
         { to: '/new', label: 'New Invoice', icon: '⊕' },
         { to: '/bill-amount', label: 'Bill Amount', icon: '₹' },
+        { to: '/billing-calendar', label: 'Billing Calendar', icon: '📅' },
     ]},
     { group: 'CATALOGUE', items: [
         { to: '/products', label: 'Products', icon: '⬡' },
