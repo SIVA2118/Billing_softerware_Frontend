@@ -210,7 +210,7 @@ const BillingCalendar = () => {
         <div className="billing-details-pane">
           <div style={S.card}>
             <div style={S.cardTopLine} />
-            <div style={S.cardInner}>
+            <div style={S.detailsCardInner}>
               <div style={S.detailsHeader} className="billing-details-header">
                 <div>
                   <h2 style={S.detailsTitle}>Billing Details</h2>
@@ -226,64 +226,66 @@ const BillingCalendar = () => {
                 </button>
               </div>
 
-              {loading && <p style={S.status}>Loading invoices...</p>}
-              {error && <p style={S.error}>Error: {error}</p>}
-              {!loading && selectedDate && invoices.length === 0 && !error && (
-                <p style={S.status}>No bills found for the selected date.</p>
-              )}
-              {!selectedDate && (
-                <p style={S.status}>Pick a date on the calendar to view billing details.</p>
-              )}
+              <div style={S.detailsScroll}>
+                {loading && <p style={S.status}>Loading invoices...</p>}
+                {error && <p style={S.error}>Error: {error}</p>}
+                {!loading && selectedDate && invoices.length === 0 && !error && (
+                  <p style={S.status}>No bills found for the selected date.</p>
+                )}
+                {!selectedDate && (
+                  <p style={S.status}>Pick a date on the calendar to view billing details.</p>
+                )}
 
-              {!loading && selectedDate && invoices.length > 0 && (
-                <>
-                  <div style={S.grid}>
-                    {paginated.map((inv) => (
-                      <div key={inv._id} style={S.billCard}>
-                        <div style={S.billCardTop} />
-                        <div style={S.billCardInner}>
-                          <h3 style={S.buyerHeader}>{inv.buyer?.name || 'Unnamed Buyer'}</h3>
-                          <div style={S.invoiceMeta}>
-                            <span>Invoice: {inv.invoiceNo}</span>
-                            <span>Date: {new Date(inv.invoiceDate).toLocaleDateString()}</span>
-                          </div>
-                          {inv.buyer?.route && (
-                            <div style={S.routeLine}>Route: {inv.buyer.route}</div>
-                          )}
-                          <table style={S.table}>
-                            <thead>
-                              <tr>
-                                <th style={S.th}>Product</th>
-                                <th style={S.th}>Qty</th>
-                                <th style={S.th}>Rate</th>
-                                <th style={S.th}>Amount</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {inv.items.map((it, i) => (
-                                <tr key={i}>
-                                  <td style={S.td}>{it.particulars}</td>
-                                  <td style={S.td}>{it.qty2 ?? it.qty ?? '—'}</td>
-                                  <td style={S.td}>{it.rate}</td>
-                                  <td style={S.td}>{it.total}</td>
+                {!loading && selectedDate && invoices.length > 0 && (
+                  <>
+                    <div style={S.grid}>
+                      {paginated.map((inv) => (
+                        <div key={inv._id} style={S.billCard}>
+                          <div style={S.billCardTop} />
+                          <div style={S.billCardInner}>
+                            <h3 style={S.buyerHeader}>{inv.buyer?.name || 'Unnamed Buyer'}</h3>
+                            <div style={S.invoiceMeta}>
+                              <span>Invoice: {inv.invoiceNo}</span>
+                              <span>Date: {new Date(inv.invoiceDate).toLocaleDateString()}</span>
+                            </div>
+                            {inv.buyer?.route && (
+                              <div style={S.routeLine}>Route: {inv.buyer.route}</div>
+                            )}
+                            <table style={S.table}>
+                              <thead>
+                                <tr>
+                                  <th style={S.th}>Product</th>
+                                  <th style={S.th}>Qty</th>
+                                  <th style={S.th}>Rate</th>
+                                  <th style={S.th}>Amount</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {inv.items.map((it, i) => (
+                                  <tr key={i}>
+                                    <td style={S.td}>{it.particulars}</td>
+                                    <td style={S.td}>{it.qty2 ?? it.qty ?? '—'}</td>
+                                    <td style={S.td}>{it.rate}</td>
+                                    <td style={S.td}>{it.total}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={S.paginationWrapper}>
-                    <span style={S.paginationText}>Page {page} of {totalPages}</span>
-                    <div style={S.buttonGroup}>
-                      <button style={S.button} onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1}>Prev</button>
-                      <button style={S.button} onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages}>Next</button>
+                      ))}
                     </div>
-                  </div>
-                </>
-              )}
+
+                    <div style={S.paginationWrapper}>
+                      <span style={S.paginationText}>Page {page} of {totalPages}</span>
+                      <div style={S.buttonGroup}>
+                        <button style={S.button} onClick={() => setPage(p => Math.max(p - 1, 1))} disabled={page === 1}>Prev</button>
+                        <button style={S.button} onClick={() => setPage(p => Math.min(p + 1, totalPages))} disabled={page === totalPages}>Next</button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -322,6 +324,8 @@ const S = {
   detailsTitle: { margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' },
   detailsSubtitle: { margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' },
   detailsMeta: { margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '0.8rem' },
+  detailsCardInner: { padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: 'calc(100vh - 260px)', overflow: 'hidden' },
+  detailsScroll: { display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', maxHeight: '100%' },
   pickerWrapper: { position: 'relative', width: '100%', maxWidth: '420px' },
   input: {
     width: '100%',
@@ -351,49 +355,49 @@ const S = {
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-    gap: '16px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+    gap: '12px',
   },
   billCard: {
     background: 'var(--surface-gradient)',
     border: '1px solid var(--line-soft)',
-    borderRadius: '14px',
+    borderRadius: '12px',
     overflow: 'hidden',
     boxShadow: 'var(--shadow-card)',
   },
   billCardTop: { height: '2px', background: 'var(--top-line-gradient)' },
-  billCardInner: { padding: '16px' },
+  billCardInner: { padding: '12px' },
   buyerHeader: {
-    margin: '0 0 8px 0',
-    fontSize: '1rem',
+    margin: '0 0 6px 0',
+    fontSize: '0.95rem',
     fontWeight: 600,
     color: 'var(--text-primary)',
   },
   invoiceMeta: {
     display: 'flex',
     justifyContent: 'space-between',
-    fontSize: '0.72rem',
+    fontSize: '0.7rem',
     color: 'var(--text-muted)',
-    marginBottom: '12px',
+    marginBottom: '10px',
     borderBottom: '1px solid var(--line-soft)',
-    paddingBottom: '8px',
+    paddingBottom: '6px',
   },
   table: { width: '100%', borderCollapse: 'collapse' },
-  routeLine: { margin: '0 0 10px', fontSize: '0.78rem', color: 'var(--text-muted)' },
+  routeLine: { margin: '0 0 8px', fontSize: '0.72rem', color: 'var(--text-muted)' },
   th: {
     textAlign: 'left',
-    padding: '6px 8px',
+    padding: '5px 7px',
     color: 'rgba(59,130,246,0.45)',
-    fontSize: '0.6rem',
-    letterSpacing: '0.8px',
+    fontSize: '0.56rem',
+    letterSpacing: '0.7px',
     textTransform: 'uppercase',
     borderBottom: '1px solid var(--table-row-border)',
   },
   td: {
-    padding: '6px 8px',
+    padding: '5px 7px',
     borderBottom: '1px solid var(--table-row-border)',
     color: 'var(--text-secondary)',
-    fontSize: '0.75rem',
+    fontSize: '0.72rem',
   },
   paginationWrapper: {
     display: 'flex',
