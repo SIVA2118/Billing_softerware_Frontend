@@ -147,7 +147,7 @@ export default function InvoiceDetail() {
                         <table style={S.table}>
                             <thead>
                                 <tr>
-                                    {['#', 'Particulars', 'Qty', 'Rate', 'Gross', 'CGST', 'SGST', 'Amount'].map(h => (
+                                    {['#', 'Particulars', 'Qty', 'Free', 'Rate', 'Gross', 'CGST', 'SGST', 'Amount'].map(h => (
                                         <th key={h} className="p-th" style={S.th}>{h}</th>
                                     ))}
                                 </tr>
@@ -157,7 +157,8 @@ export default function InvoiceDetail() {
                                     <tr key={idx} style={idx % 2 === 0 ? S.trEven : S.trOdd}>
                                         <td style={S.td}>{idx + 1}</td>
                                         <td style={{ ...S.td, ...S.tdName }}>{item.particulars}</td>
-                                        <td style={S.td}>{item.qty}</td>
+                                        <td style={S.td}>{item.qty2 ?? item.qty ?? '—'}</td>
+                                        <td style={S.td}>{item.freeQty ?? 0}</td>
                                         <td style={S.td}>{money(item.rate)}</td>
                                         <td style={S.td}>{money(item.grossAmt)}</td>
                                         <td style={S.td}>{item.cgstPct}% ({money(item.cgstAmt)})</td>

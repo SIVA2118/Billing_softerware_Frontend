@@ -16,7 +16,7 @@ const generateBillingPdf = async (isoDate, invoices) => {
   const lineHeight = 18;
   const contentWidth = pageWidth - margin * 2;
   const tableX = margin + 10;
-  const tableWidths = { product: 240, qty: 60, rate: 90, amount: 90 };
+  const tableWidths = { product: 180, qty: 50, free: 50, rate: 80, amount: 80 };
   const pageFooterHeight = 30;
 
   const drawHeader = (pageNumber, totalPages) => {
@@ -69,21 +69,23 @@ const generateBillingPdf = async (isoDate, invoices) => {
 
     y += 36;
     doc.setFillColor('#e5e7eb');
-    doc.rect(tableX, y - 14, tableWidths.product + tableWidths.qty + tableWidths.rate + tableWidths.amount, lineHeight, 'F');
+    doc.rect(tableX, y - 14, tableWidths.product + tableWidths.qty + tableWidths.free + tableWidths.rate + tableWidths.amount, lineHeight, 'F');
 
     doc.setFontSize(10);
     doc.setTextColor('#111827');
     doc.text('Product', tableX + 4, y);
     doc.text('Qty', tableX + tableWidths.product + 8, y);
-    doc.text('Rate', tableX + tableWidths.product + tableWidths.qty + 8, y);
-    doc.text('Amount', tableX + tableWidths.product + tableWidths.qty + tableWidths.rate + 8, y);
+    doc.text('Free', tableX + tableWidths.product + tableWidths.qty + 8, y);
+    doc.text('Rate', tableX + tableWidths.product + tableWidths.qty + tableWidths.free + 8, y);
+    doc.text('Amount', tableX + tableWidths.product + tableWidths.qty + tableWidths.free + tableWidths.rate + 8, y);
 
     y += lineHeight;
 
     const items = Array.isArray(inv.items) ? inv.items : [];
     items.forEach((item) => {
       const product = item.particulars || '—';
-      const qty = String(item.qty || '');
+      const qty = String(item.qty2 ?? item.qty ?? '');
+      const freeQty = String(item.freeQty ?? '0');
       const rate = String(item.rate || '');
       const amount = String(item.total || '');
 
@@ -91,8 +93,9 @@ const generateBillingPdf = async (isoDate, invoices) => {
       doc.setTextColor('#1f2937');
       doc.text(product, tableX + 4, y);
       doc.text(qty, tableX + tableWidths.product + 8, y);
-      doc.text(rate, tableX + tableWidths.product + tableWidths.qty + 8, y);
-      doc.text(amount, tableX + tableWidths.product + tableWidths.qty + tableWidths.rate + 8, y);
+      doc.text(freeQty, tableX + tableWidths.product + tableWidths.qty + 8, y);
+      doc.text(rate, tableX + tableWidths.product + tableWidths.qty + tableWidths.free + 8, y);
+      doc.text(amount, tableX + tableWidths.product + tableWidths.qty + tableWidths.free + tableWidths.rate + 8, y);
       y += lineHeight;
     });
 
@@ -100,7 +103,7 @@ const generateBillingPdf = async (isoDate, invoices) => {
     y += 6;
     doc.setDrawColor('#d1d5db');
     doc.setLineWidth(0.5);
-    doc.line(tableX, y, tableX + tableWidths.product + tableWidths.qty + tableWidths.rate + tableWidths.amount, y);
+    doc.line(tableX, y, tableX + tableWidths.product + tableWidths.qty + tableWidths.free + tableWidths.rate + tableWidths.amount, y);
     y += 14;
 
     doc.setFontSize(11);
@@ -212,7 +215,10 @@ const BillingCalendar = () => {
                 <div>
                   <h2 style={S.detailsTitle}>Billing Details</h2>
                   {selectedDate && (
-                    <p style={S.detailsSubtitle}>Showing bills for {selectedDate.toLocaleDateString()}</p>
+                    <>
+                      <p style={S.detailsSubtitle}>Showing bills for {selectedDate.toLocaleDateString()}</p>
+                      <p style={S.detailsMeta}>Total bill no: <strong>{invoices.length}</strong></p>
+                    </>
                   )}
                 </div>
                 <button id="export-pdf-btn" style={S.exportBtn} className="billing-export-btn" onClick={handleExport} disabled={!selectedDate || invoices.length === 0}>
@@ -241,6 +247,9 @@ const BillingCalendar = () => {
                             <span>Invoice: {inv.invoiceNo}</span>
                             <span>Date: {new Date(inv.invoiceDate).toLocaleDateString()}</span>
                           </div>
+                          {inv.buyer?.route && (
+                            <div style={S.routeLine}>Route: {inv.buyer.route}</div>
+                          )}
                           <table style={S.table}>
                             <thead>
                               <tr>
@@ -254,7 +263,7 @@ const BillingCalendar = () => {
                               {inv.items.map((it, i) => (
                                 <tr key={i}>
                                   <td style={S.td}>{it.particulars}</td>
-                                  <td style={S.td}>{it.qty}</td>
+                                  <td style={S.td}>{it.qty2 ?? it.qty ?? '—'}</td>
                                   <td style={S.td}>{it.rate}</td>
                                   <td style={S.td}>{it.total}</td>
                                 </tr>
@@ -312,6 +321,7 @@ const S = {
   detailsHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', marginBottom: '18px' },
   detailsTitle: { margin: 0, fontSize: '1.1rem', color: 'var(--text-primary)' },
   detailsSubtitle: { margin: '6px 0 0', color: 'var(--text-muted)', fontSize: '0.85rem' },
+  detailsMeta: { margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '0.8rem' },
   pickerWrapper: { position: 'relative', width: '100%', maxWidth: '420px' },
   input: {
     width: '100%',
@@ -369,6 +379,7 @@ const S = {
     paddingBottom: '8px',
   },
   table: { width: '100%', borderCollapse: 'collapse' },
+  routeLine: { margin: '0 0 10px', fontSize: '0.78rem', color: 'var(--text-muted)' },
   th: {
     textAlign: 'left',
     padding: '6px 8px',

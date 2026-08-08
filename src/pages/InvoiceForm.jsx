@@ -6,11 +6,24 @@ import { fetchBuyers } from '../api/buyerApi.js';
 import { fetchProducts } from '../api/productApi';
 import { fetchEmployees } from '../api/authApi';
 
-const EMPTY_ITEM = { slNo: 1, particulars: '', qty: '', rate: '', grossAmt: '', cgstPct: 20, cgstAmt: '', sgstPct: 20, sgstAmt: '', total: '' };
+const EMPTY_ITEM = { slNo: 1, particulars: '', qty: '', qty2: '', freeQty: '', rate: '', grossAmt: '', cgstPct: 20, cgstAmt: '', sgstPct: 20, sgstAmt: '', total: '' };
 const DEFAULT_SELLER = { name: 'Shri Sastik Agencies', address: '2/572 Q2, Mudalaipalayam, Kangeyam Road (Via)', city: 'Tirupur', state: 'Tamil Nadu', pincode: '641606', phone: '7904125248', gstin: '33AFIFS1793R1Z6', fssaiNo: '12424027000669', pan: 'AFIFS1793R' };
 const EMPTY_BUYER = { name: '', address: '', route: '', phone: '' };
 
 const toNumber = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+const parseQtyLabel = (value) => {
+    const raw = String(value || '').trim();
+    const numeric = parseFloat(raw);
+    if (!Number.isFinite(numeric)) return { value: raw, numeric: 0, suffix: '' };
+    const suffix = raw.replace(/^[-+]?\d*\.?\d+/, '').trim();
+    return { value: raw, numeric, suffix };
+};
+const computeRemainingQty = (rawQty, usedQty) => {
+    const available = parseQtyLabel(rawQty);
+    const used = toNumber(usedQty);
+    const remaining = Math.max(0, available.numeric - used);
+    return available.suffix ? `${remaining}${available.suffix}` : `${remaining}`;
+};
 const parseSeq = (no) => { const m = String(no || '').match(/(\d+)$/); return m ? Number(m[1]) : 0; };
 const genInvoiceNo = (n) => { const now = new Date(); const s = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1; return `${s}-${String((s + 1) % 100).padStart(2, '0')}/${String(n).padStart(4, '0')}`; };
 
@@ -79,7 +92,7 @@ export default function InvoiceForm() {
     }, [buyers, buyer.name, selectedBuyerId]);
 
     const recalc = (item) => {
-        const qty = toNumber(item.qty), rate = toNumber(item.rate);
+        const qty = toNumber(item.qty2), rate = toNumber(item.rate);
         const gross = qty > 0 && rate > 0 ? qty * rate : toNumber(item.grossAmt);
         const cgst = parseFloat(((gross * toNumber(item.cgstPct)) / 100).toFixed(2));
         const sgst = parseFloat(((gross * toNumber(item.sgstPct)) / 100).toFixed(2));
@@ -96,16 +109,23 @@ export default function InvoiceForm() {
             const item = items[i] || {};
             const row = i + 1;
             const name = String(item.particulars || '').trim();
-            const qty = toNumber(item.qty);
+            const qty = toNumber(item.qty2);
+            const freeQty = toNumber(item.freeQty);
             const rate = toNumber(item.rate);
+            const totalTaken = qty + freeQty;
 
             if (!name) {
                 toast.error(`Item ${row}: Product name is required`);
                 return false;
             }
 
-            if (qty <= 0) {
-                toast.error(`Item ${row}: Qty must be greater than 0`);
+            if (qty < 0 || freeQty < 0) {
+                toast.error(`Item ${row}: Qty and free quantity must be zero or positive`);
+                return false;
+            }
+
+            if (qty <= 0 && freeQty <= 0) {
+                toast.error(`Item ${row}: Enter a Qty or free quantity`);
                 return false;
             }
 
@@ -121,8 +141,8 @@ export default function InvoiceForm() {
                     toast.error(`Unavailable product: ${name} is out of stock`);
                     return false;
                 }
-                if (qty > availableQty) {
-                    toast.error(`Unavailable qty for ${name}. Available: ${availableQty}`);
+                if (totalTaken > availableQty) {
+                    toast.error(`Total quantity for ${name} exceeds stock. Available: ${availableQty}`);
                     return false;
                 }
             }
@@ -303,7 +323,7 @@ export default function InvoiceForm() {
                     <table style={S.table}>
                         <thead>
                             <tr style={S.theadRow}>
-                                {['#', 'Particulars', 'Qty', 'Rate', 'Gross Amt', 'CGST%', 'CGST ₹', 'SGST%', 'SGST ₹', 'Total', ''].map(h => (
+                                {['#', 'Particulars', 'Qty', 'Free', 'Rate', 'Gross Amt', 'CGST%', 'CGST ₹', 'SGST%', 'SGST ₹', 'Total', ''].map(h => (
                                     <th key={h} style={S.th}>{h}</th>
                                 ))}
                             </tr>
@@ -324,7 +344,8 @@ export default function InvoiceForm() {
                                             {products.map(p => <option key={p._id} value={p.particulars || p.name || ''} />)}
                                         </datalist>
                                     </td>
-                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} value={item.qty} onChange={e => handleItemChange(idx, 'qty', e.target.value)} placeholder="2 CS30" /></td>
+                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.qty2} onChange={e => handleItemChange(idx, 'qty2', e.target.value)} placeholder="Qty" /></td>
+                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.freeQty} onChange={e => handleItemChange(idx, 'freeQty', e.target.value)} placeholder="Free" /></td>
                                     <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.rate} onChange={e => handleItemChange(idx, 'rate', e.target.value)} /></td>
                                     <td style={S.td}><input style={{ ...S.inp, width: '90px' }} type="number" value={item.grossAmt} onChange={e => handleItemChange(idx, 'grossAmt', e.target.value)} /></td>
                                     <td style={S.td}><span style={S.calcVal}>{item.cgstPct || 0}%</span></td>
