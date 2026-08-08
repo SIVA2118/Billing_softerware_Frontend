@@ -235,6 +235,7 @@ input, select, textarea { font-family: var(--font-body); }
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box;
+  padding: 0 !important;
 }
 
 .premium-datepicker-calendar .react-datepicker__month-container,
@@ -257,6 +258,8 @@ input, select, textarea { font-family: var(--font-body); }
 @media (max-width: 1120px) {
   .billing-calendar-layout {
     grid-template-columns: 1fr;
+    max-width: 720px;
+    margin: 0 auto;
   }
 
   .billing-details-header {
@@ -272,50 +275,65 @@ input, select, textarea { font-family: var(--font-body); }
 @media (max-width: 900px) {
   .billing-calendar-layout {
     gap: 18px;
+    max-width: 640px;
+    margin: 0 auto;
   }
 
   .premium-datepicker-calendar {
-    padding: 12px !important;
+    padding: 10px !important;
   }
 }
 
 @media (max-width: 720px) {
   .billing-calendar-layout {
     gap: 14px;
+    max-width: 100%;
+    margin: 0 auto;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .billing-calendar-pane,
+  .billing-details-pane {
+    max-width: 100%;
+    min-width: 0 !important;
   }
 
   .premium-datepicker-calendar {
-    padding: 10px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px !important;
+    box-sizing: border-box;
+    min-width: 0 !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__month-container,
+  .premium-datepicker-calendar .react-datepicker__month {
+    width: 100% !important;
+    min-width: 0 !important;
   }
 
   .premium-datepicker-calendar .react-datepicker__day-name,
   .premium-datepicker-calendar .react-datepicker__day {
-    font-size: 0.72rem;
+    font-size: 0.7rem;
   }
 
   .premium-datepicker-calendar .react-datepicker__day {
-    width: 30px !important;
-    line-height: 30px !important;
+    width: 26px !important;
+    line-height: 26px !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__header {
+    padding: 10px 8px 4px !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__current-month {
+    font-size: 1rem !important;
   }
 
   .billing-export-btn {
     min-width: 0;
-  }
-}
-
-@media (max-width: 720px) {
-  .premium-datepicker-calendar {
     width: 100%;
-    padding: 12px;
-  }
-
-  .premium-datepicker-calendar .react-datepicker__day {
-    width: 38px;
-    line-height: 38px;
-  }
-
-  .billing-calendar-layout {
-    gap: 16px;
   }
 }
 
