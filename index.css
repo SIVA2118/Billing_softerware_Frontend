@@ -208,7 +208,7 @@ input, select, textarea { font-family: var(--font-body); }
 
 .billing-calendar-layout {
   display: grid;
-  grid-template-columns: minmax(420px, 460px) minmax(420px, 1fr);
+  grid-template-columns: minmax(320px, 420px) minmax(320px, 1fr);
   gap: 24px;
   align-items: start;
 }
@@ -216,6 +216,7 @@ input, select, textarea { font-family: var(--font-body); }
 .billing-calendar-pane,
 .billing-details-pane {
   width: 100%;
+  min-width: 0;
 }
 
 .billing-details-header {
@@ -227,6 +228,11 @@ input, select, textarea { font-family: var(--font-body); }
 
 .billing-export-btn {
   min-width: 190px;
+}
+
+.premium-datepicker-calendar {
+  width: 100% !important;
+  max-width: 100% !important;
 }
 
 @media (max-width: 1120px) {
@@ -241,6 +247,35 @@ input, select, textarea { font-family: var(--font-body); }
 
   .billing-export-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .billing-calendar-layout {
+    gap: 18px;
+  }
+
+  .premium-datepicker-calendar {
+    padding: 12px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .billing-calendar-layout {
+    gap: 14px;
+  }
+
+  .premium-datepicker-calendar {
+    padding: 10px !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__day {
+    width: 34px;
+    line-height: 34px;
+  }
+
+  .billing-export-btn {
+    min-width: 0;
   }
 }
 
