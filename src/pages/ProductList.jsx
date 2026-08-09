@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { jsPDF } from 'jspdf';
 import { fetchProducts, deleteProduct } from '../api/productApi';
 import { fetchCategories } from '../api/categoryApi';
 import toast from 'react-hot-toast';
@@ -63,6 +64,133 @@ export default function ProductList() {
         }
     };
 
+    const exportProductPdf = (category, data) => {
+        if (!Array.isArray(data) || data.length === 0) {
+            toast.error('No products available to export');
+            return;
+        }
+
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 40;
+        const contentWidth = pageWidth - margin * 2;
+        const lineHeight = 16;
+        const safeText = (value) => (value && String(value).trim() ? String(value) : '—');
+        const catalogueLabel = category || 'All Categories';
+        const fileName = `product-catalogue-${catalogueLabel}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'product-catalogue';
+        const now = new Date();
+        const generatedAt = now.toLocaleString('en-IN', {
+            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit',
+        });
+
+        let y = 40;
+
+        const drawHeader = (isFirstPage) => {
+            if (isFirstPage) {
+                doc.setFillColor('#0f172a');
+                doc.rect(0, 0, pageWidth, 72, 'F');
+                doc.setFontSize(24);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor('#ffffff');
+                doc.text('Product Catalogue', margin, 40);
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor('#cbd5e1');
+                doc.text(`Category: ${catalogueLabel}`, margin, 56);
+                doc.text(`Generated: ${generatedAt}`, pageWidth - margin, 56, { align: 'right' });
+            }
+
+            doc.setDrawColor('#cbd5e1');
+            doc.setLineWidth(0.5);
+            doc.line(margin, 84, pageWidth - margin, 84);
+            y = 100;
+        };
+
+        const grouped = data.reduce((acc, product) => {
+            const categoryKey = product.category || 'Uncategorized';
+            if (!acc[categoryKey]) acc[categoryKey] = [];
+            acc[categoryKey].push(product);
+            return acc;
+        }, {});
+
+        const categoryKeys = Object.keys(grouped).sort((a, b) => {
+            if (a === 'Uncategorized') return 1;
+            if (b === 'Uncategorized') return -1;
+            return a.localeCompare(b);
+        });
+
+        drawHeader(true);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor('#475569');
+        doc.text(`Products: ${data.length}`, margin, y);
+        doc.text(`Category groups: ${categoryKeys.length}`, pageWidth - margin, y, { align: 'right' });
+        y += 22;
+
+        categoryKeys.forEach((categoryKey, categoryIndex) => {
+            const categoryTitle = `${categoryIndex + 1}. ${categoryKey}`;
+            if (y > pageHeight - margin - 120) {
+                doc.addPage();
+                drawHeader(false);
+            }
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor('#1d4ed8');
+            doc.text(categoryTitle, margin, y);
+            y += 20;
+
+            grouped[categoryKey].forEach((product, productIndex) => {
+                const item = getProductDisplay(product);
+                const title = `${productIndex + 1}. ${safeText(item.particulars)}`;
+                const descriptionLines = doc.splitTextToSize(`Description: ${safeText(item.description)}`, contentWidth - 32);
+                const detailsLines = doc.splitTextToSize(
+                    `Qty: ${safeText(item.qty)} | Rate: ₹${fmt(item.rate)} | CGST: ₹${fmt(item.cgstAmt)} | SGST: ₹${fmt(item.sgstAmt)}`,
+                    contentWidth - 32,
+                );
+                const cardHeight = 24 + descriptionLines.length * lineHeight + detailsLines.length * lineHeight + 14;
+
+                if (y + cardHeight > pageHeight - margin - 40) {
+                    doc.addPage();
+                    drawHeader(false);
+                }
+
+                doc.setFillColor('#f8fafc');
+                doc.roundedRect(margin, y - 6, contentWidth, cardHeight, 10, 10, 'F');
+                doc.setDrawColor('#cbd5e1');
+                doc.setLineWidth(0.8);
+                doc.roundedRect(margin, y - 6, contentWidth, cardHeight, 10, 10, 'S');
+
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor('#0f172a');
+                doc.text(title, margin + 14, y + 12);
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor('#475569');
+                doc.text(detailsLines, margin + 14, y + 30);
+                doc.text(descriptionLines, margin + 14, y + 30 + detailsLines.length * lineHeight);
+
+                y += cardHeight + 16;
+            });
+        });
+
+        const totalPages = doc.getNumberOfPages();
+        for (let pageIndex = 1; pageIndex <= totalPages; pageIndex += 1) {
+            doc.setPage(pageIndex);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor('#94a3b8');
+            doc.text(`Page ${pageIndex} of ${totalPages}`, pageWidth - margin, pageHeight - 24, { align: 'right' });
+        }
+
+        doc.save(`${fileName}.pdf`);
+    };
+
     const handleCategorySelect = (category) => {
         setSearchParams(category ? { category } : {});
         setSelectedCategory(category);
@@ -89,7 +217,12 @@ export default function ProductList() {
                     <p style={S.subtitle}>{products.length} product{products.length !== 1 ? 's' : ''} in catalogue</p>
                     {selectedCategory && <p style={S.categorySubtitle}>Showing category: {selectedCategory}</p>}
                 </div>
-                <Link to="/products/new" style={S.addBtn}>+ Add Product</Link>
+                <div style={S.headerActions}>
+                    <button type="button" onClick={() => exportProductPdf(selectedCategory, products)} style={S.exportBtn}>
+                        ⬇ Download Catalogue PDF
+                    </button>
+                    <Link to="/products/new" style={S.addBtn}>+ Add Product</Link>
+                </div>
             </div>
 
             <div style={S.body}>
@@ -182,6 +315,16 @@ const S = {
         fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
         textDecoration: 'none', cursor: 'pointer',
     },
+    exportBtn: {
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        background: 'linear-gradient(135deg, rgba(34,197,94,0.1), rgba(16,185,129,0.12))',
+        border: '1px solid rgba(34,197,94,0.24)',
+        color: '#16a34a',
+        padding: '9px 20px', borderRadius: '9px',
+        fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
+        cursor: 'pointer',
+    },
+    headerActions: { display: 'flex', gap: '10px', alignItems: 'center' },
     body: {
         display: 'flex', flexDirection: 'column', gap: '18px',
         maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '8px',
