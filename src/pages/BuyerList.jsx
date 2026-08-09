@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { jsPDF } from 'jspdf';
 import { deleteBuyer, fetchBuyers } from '../api/buyerApi.js';
 import { fetchRoutes, createRoute, deleteRoute } from '../api/routeApi.js';
 
@@ -40,6 +41,132 @@ export default function BuyerList() {
             hour: '2-digit',
             minute: '2-digit',
         });
+    };
+
+    const exportBuyerPdf = (label, data) => {
+        if (!Array.isArray(data) || data.length === 0) {
+            toast.error('No buyers available to export for this route');
+            return;
+        }
+
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 40;
+        const contentWidth = pageWidth - margin * 2;
+        const lineHeight = 16;
+        const safeText = (value) => (value && String(value).trim() ? String(value) : '—');
+        const routeLabel = label || 'All Routes';
+        const fileName = `${routeLabel}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all-routes';
+
+        let y = 40;
+        const now = new Date();
+        const generatedAt = now.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const drawPageHeader = (isFirstPage) => {
+            if (isFirstPage) {
+                doc.setFillColor('#0f172a');
+                doc.rect(0, 0, pageWidth, 72, 'F');
+
+                doc.setFontSize(24);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor('#ffffff');
+                doc.text('Buyer List Report', margin, 40);
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor('#cbd5e1');
+                doc.text(`Route: ${routeLabel}`, margin, 56);
+                doc.text(`Generated: ${generatedAt}`, pageWidth - margin, 56, { align: 'right' });
+            }
+
+            doc.setDrawColor('#cbd5e1');
+            doc.setLineWidth(0.5);
+            doc.line(margin, 84, pageWidth - margin, 84);
+            y = 100;
+        };
+
+        const grouped = data.reduce((acc, buyer) => {
+            const route = buyer.route?.trim() || 'Unassigned';
+            if (!acc[route]) acc[route] = [];
+            acc[route].push(buyer);
+            return acc;
+        }, {});
+
+        const routeKeys = Object.keys(grouped).sort((a, b) => {
+            if (a === 'Unassigned') return 1;
+            if (b === 'Unassigned') return -1;
+            return a.localeCompare(b);
+        });
+
+        drawPageHeader(true);
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor('#475569');
+        doc.text(`Total Buyers: ${data.length}`, margin, y);
+        doc.text(`Route Groups: ${routeKeys.length}`, pageWidth - margin, y, { align: 'right' });
+        y += 22;
+
+        routeKeys.forEach((routeKey, routeIndex) => {
+            const routeTitle = `${routeIndex + 1}. ${routeKey}`;
+            const routeTitleHeight = 20;
+            if (y + routeTitleHeight > pageHeight - margin - 60) {
+                doc.addPage();
+                drawPageHeader(false);
+            }
+
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor('#1d4ed8');
+            doc.text(routeTitle, margin, y);
+            y += 20;
+
+            grouped[routeKey].forEach((buyer, buyerIndex) => {
+                const buyerName = `${buyerIndex + 1}. ${safeText(buyer.name)}`;
+                const addressLines = doc.splitTextToSize(`Address: ${safeText(buyer.address)}`, contentWidth - 32);
+                const contactLines = doc.splitTextToSize(
+                    `Phone: ${safeText(buyer.phone)} | Created: ${formatBuyerCreatedAt(buyer.createdAt) || '—'}`,
+                    contentWidth - 32,
+                );
+                const cardHeight = 22 + addressLines.length * lineHeight + contactLines.length * lineHeight + 12;
+
+                if (y + cardHeight > pageHeight - margin - 40) {
+                    doc.addPage();
+                    drawPageHeader(false);
+                }
+
+                doc.setFillColor('#f8fafc');
+                doc.roundedRect(margin, y - 6, contentWidth, cardHeight, 10, 10, 'F');
+                doc.setDrawColor('#cbd5e1');
+                doc.setLineWidth(0.8);
+                doc.roundedRect(margin, y - 6, contentWidth, cardHeight, 10, 10, 'S');
+
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor('#0f172a');
+                doc.text(buyerName, margin + 14, y + 10);
+
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor('#475569');
+                doc.text(addressLines, margin + 14, y + 28);
+                doc.text(contactLines, margin + 14, y + 28 + addressLines.length * lineHeight);
+
+                y += cardHeight + 16;
+            });
+        });
+
+        const totalPages = doc.getNumberOfPages();
+        for (let page = 1; page <= totalPages; page += 1) {
+            doc.setPage(page);
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor('#94a3b8');
+            doc.text(`Page ${page} of ${totalPages}`, pageWidth - margin, pageHeight - 24, { align: 'right' });
+        }
+
+        doc.save(`buyers-${fileName}.pdf`);
     };
 
     const filteredBuyers = selectedRoute === 'All Routes'
@@ -126,6 +253,9 @@ export default function BuyerList() {
                     <p style={S.subtitle}>Manage buyers and view their invoice history</p>
                 </div>
                 <div style={S.headerActions}>
+                    <button type="button" onClick={() => exportBuyerPdf(selectedRoute, selectedRoute === 'All Routes' ? buyers : filteredBuyers)} style={S.exportBtn}>
+                        ⬇ Export PDF
+                    </button>
                     <button type="button" onClick={() => setShowRoutePanel(v => !v)} style={S.routeBtn}>
                         ◈ Manage Routes
                     </button>
@@ -310,6 +440,14 @@ const S = {
         padding: '9px 20px', borderRadius: '9px',
         fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
         textDecoration: 'none',
+    },
+    exportBtn: {
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        background: 'linear-gradient(135deg, rgba(34,197,94,0.16), rgba(34,197,94,0.08))',
+        border: '1px solid rgba(34,197,94,0.28)', color: '#16a34a',
+        padding: '9px 18px', borderRadius: '9px',
+        fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
+        cursor: 'pointer',
     },
 
     // Route panel

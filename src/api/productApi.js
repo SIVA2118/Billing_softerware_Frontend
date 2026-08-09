@@ -12,7 +12,8 @@ API.interceptors.request.use((config) => {
     return config;
 });
 
-export const fetchProducts = () => API.get('/');
+export const fetchProducts = (category) =>
+    API.get('/', { params: category ? { category } : {} });
 export const fetchProduct = (id) => API.get(`/${id}`);
 export const createProduct = (data) => API.post('/', data);
 export const updateProduct = (id, data) => API.put(`/${id}`, data);

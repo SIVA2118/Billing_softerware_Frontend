@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { fetchProducts, deleteProduct } from '../api/productApi';
+import { fetchCategories } from '../api/categoryApi';
 import toast from 'react-hot-toast';
 
 const fmt = (v) => Number(v || 0).toFixed(2);
@@ -20,13 +21,40 @@ const getProductDisplay = (p) => ({
 
 export default function ProductList() {
     const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
     const [loading, setLoading] = useState(true);
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    useEffect(() => { loadProducts(); }, []);
+    useEffect(() => { loadCategories(); }, []);
 
-    const loadProducts = async () => {
+    useEffect(() => {
+        if (!categories.length) {
+            loadProducts(searchParams.get('category') || '');
+            return;
+        }
+
+        const categoryQuery = searchParams.get('category') || categories[0]?.name || '';
+        setSelectedCategory(categoryQuery);
+    }, [categories, searchParams]);
+
+    useEffect(() => {
+        loadProducts(selectedCategory);
+    }, [selectedCategory]);
+
+    const loadCategories = async () => {
         try {
-            const res = await fetchProducts();
+            const res = await fetchCategories();
+            setCategories(res.data.data);
+        } catch {
+            toast.error('Failed to load categories');
+        }
+    };
+
+    const loadProducts = async (category = '') => {
+        try {
+            setLoading(true);
+            const res = await fetchProducts(category);
             setProducts(res.data.data);
         } catch {
             toast.error('Failed to load products');
@@ -35,12 +63,17 @@ export default function ProductList() {
         }
     };
 
+    const handleCategorySelect = (category) => {
+        setSearchParams(category ? { category } : {});
+        setSelectedCategory(category);
+    };
+
     const handleDelete = async (id) => {
         if (!window.confirm('Delete this product?')) return;
         try {
             await deleteProduct(id);
             toast.success('Product deleted');
-            loadProducts();
+            loadProducts(selectedCategory);
         } catch {
             toast.error('Delete failed');
         }
@@ -54,53 +87,80 @@ export default function ProductList() {
                 <div>
                     <h1 className="page-title-display" style={S.title}>Product Catalogue</h1>
                     <p style={S.subtitle}>{products.length} product{products.length !== 1 ? 's' : ''} in catalogue</p>
+                    {selectedCategory && <p style={S.categorySubtitle}>Showing category: {selectedCategory}</p>}
                 </div>
                 <Link to="/products/new" style={S.addBtn}>+ Add Product</Link>
             </div>
 
-            {products.length === 0 ? (
-                <div style={S.emptyState}>
-                    <div style={S.emptyIcon}>⬡</div>
-                    <p style={S.emptyText}>No products yet. Add your first product.</p>
-                    <Link to="/products/new" style={S.addBtn}>+ Add Product</Link>
-                </div>
-            ) : (
-                <div style={S.grid}>
-                    {products.map((product) => {
-                        const item = getProductDisplay(product);
-                        return (
-                            <div key={product._id} style={S.card}>
-                                <div style={S.cardAccent} />
-                                <div style={S.cardBody}>
-                                    <div style={S.cardTop}>
-                                        <div style={S.prodName}>{item.particulars}</div>
-                                        <div style={S.prodPrice}>₹{fmt(item.grossAmt)}</div>
-                                    </div>
-                                    {item.category && (
-                                        <span style={S.categoryChip}>{item.category}</span>
-                                    )}
-                                    <div style={S.metaRow}>
-                                        <span style={S.metaItem}>Qty: {item.qty}</span>
-                                        <span style={S.metaDot}>·</span>
-                                        <span style={S.metaItem}>Rate: ₹{fmt(item.rate)}</span>
-                                    </div>
-                                    {item.description && (
-                                        <p style={S.desc}>{item.description}</p>
-                                    )}
-                                    <div style={S.taxRow}>
-                                        <span style={S.taxChip}>CGST {item.cgstPct}%: ₹{fmt(item.cgstAmt)}</span>
-                                        <span style={S.taxChip}>SGST {item.sgstPct}%: ₹{fmt(item.sgstAmt)}</span>
-                                    </div>
-                                    <div style={S.cardFooter}>
-                                        <Link to={`/products/edit/${product._id}`} style={S.editBtn}>Edit</Link>
-                                        <button onClick={() => handleDelete(product._id)} style={S.deleteBtn}>Delete</button>
+            <div style={S.body}>
+                {categories.length > 0 && (
+                    <div style={S.categoryFilters}>
+                        <button
+                            type="button"
+                            onClick={() => handleCategorySelect('')}
+                            style={selectedCategory === '' ? S.categoryPillActive : S.categoryPill}
+                        >
+                            All
+                        </button>
+                        {categories.map((category) => (
+                            <button
+                                type="button"
+                                key={category._id}
+                                onClick={() => handleCategorySelect(category.name)}
+                                style={selectedCategory === category.name ? S.categoryPillActive : S.categoryPill}
+                            >
+                                {category.name}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
+                {products.length === 0 ? (
+                    <div style={S.emptyState}>
+                        <div style={S.emptyIcon}>⬡</div>
+                        <p style={S.emptyText}>No products yet. Add your first product.</p>
+                        <Link to="/products/new" style={S.addBtn}>+ Add Product</Link>
+                    </div>
+                ) : (
+                    <div style={S.grid}>
+                        {products.map((product) => {
+                            const item = getProductDisplay(product);
+                            return (
+                                <div key={product._id} style={S.card}>
+                                    <div style={S.cardAccent} />
+                                    <div style={S.cardBody}>
+                                        <div style={S.cardTop}>
+                                            <div style={S.prodName}>{item.particulars}</div>
+                                            <div style={S.prodPrice}>₹{fmt(item.grossAmt)}</div>
+                                        </div>
+                                        {item.category && (
+                                            <button type="button" style={S.categoryChipButton} onClick={() => handleCategorySelect(item.category)}>
+                                                {item.category}
+                                            </button>
+                                        )}
+                                        <div style={S.metaRow}>
+                                            <span style={S.metaItem}>Qty: {item.qty}</span>
+                                            <span style={S.metaDot}>·</span>
+                                            <span style={S.metaItem}>Rate: ₹{fmt(item.rate)}</span>
+                                        </div>
+                                        {item.description && (
+                                            <p style={S.desc}>{item.description}</p>
+                                        )}
+                                        <div style={S.taxRow}>
+                                            <span style={S.taxChip}>CGST {item.cgstPct}%: ₹{fmt(item.cgstAmt)}</span>
+                                            <span style={S.taxChip}>SGST {item.sgstPct}%: ₹{fmt(item.sgstAmt)}</span>
+                                        </div>
+                                        <div style={S.cardFooter}>
+                                            <Link to={`/products/edit/${product._id}`} style={S.editBtn}>Edit</Link>
+                                            <button onClick={() => handleDelete(product._id)} style={S.deleteBtn}>Delete</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -121,6 +181,10 @@ const S = {
         padding: '9px 20px', borderRadius: '9px',
         fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
         textDecoration: 'none', cursor: 'pointer',
+    },
+    body: {
+        display: 'flex', flexDirection: 'column', gap: '18px',
+        maxHeight: 'calc(100vh - 200px)', overflowY: 'auto', paddingRight: '8px',
     },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' },
     card: {
@@ -148,6 +212,15 @@ const S = {
         borderRadius: '20px', padding: '3px 10px',
         fontSize: '0.68rem', fontWeight: 500, letterSpacing: '0.5px',
     },
+    categoryChipButton: {
+        alignSelf: 'flex-start',
+        background: 'rgba(52,211,153,0.08)', color: '#34d399',
+        border: '1px solid rgba(52,211,153,0.15)',
+        borderRadius: '20px', padding: '3px 10px',
+        fontSize: '0.68rem', fontWeight: 500, letterSpacing: '0.5px',
+        cursor: 'pointer',
+        transition: 'background 0.2s, border-color 0.2s',
+    },
     metaRow: { display: 'flex', alignItems: 'center', gap: '8px' },
     metaItem: { color: 'var(--text-muted)', fontSize: '0.75rem' },
     metaDot: { color: 'rgba(59,130,246,0.2)', fontSize: '0.7rem' },
@@ -169,5 +242,15 @@ const S = {
     loading: { display: 'flex', justifyContent: 'center', padding: '80px', color: 'var(--text-muted)', fontSize: '0.85rem' },
     emptyState: { textAlign: 'center', padding: '80px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' },
     emptyIcon: { fontSize: '2rem', color: 'rgba(59,130,246,0.2)' },
+    categorySubtitle: { margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '0.76rem' },
+    categoryFilters: { display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '24px' },
+    categoryPill: {
+        appearance: 'none', border: '1px solid rgba(255,255,255,0.16)', borderRadius: '999px', background: 'transparent',
+        color: 'var(--text-primary)', padding: '8px 14px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 500,
+    },
+    categoryPillActive: {
+        appearance: 'none', border: '1px solid var(--accent-button-border)', borderRadius: '999px', background: 'var(--accent-button-bg)',
+        color: 'var(--gold)', padding: '8px 14px', cursor: 'pointer', fontSize: '0.78rem', fontWeight: 600,
+    },
     emptyText: { color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 },
 };
