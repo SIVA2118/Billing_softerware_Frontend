@@ -10,6 +10,7 @@ export default function BuyerList() {
     const [buyers, setBuyers] = useState([]);
     const [routes, setRoutes] = useState([]);
     const [selectedRoute, setSelectedRoute] = useState('All Routes');
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [showRoutePanel, setShowRoutePanel] = useState(false);
     const [newRouteName, setNewRouteName] = useState('');
@@ -169,9 +170,17 @@ export default function BuyerList() {
         doc.save(`buyers-${fileName}.pdf`);
     };
 
-    const filteredBuyers = selectedRoute === 'All Routes'
+    const searchNormalized = String(searchQuery || '').trim().toLowerCase();
+    const filteredByRoute = selectedRoute === 'All Routes'
         ? buyers
         : buyers.filter((buyer) => (buyer.route?.trim() || 'Unassigned') === selectedRoute);
+
+    const filteredBuyers = searchNormalized
+        ? filteredByRoute.filter((buyer) => {
+            const terms = [buyer.name, buyer.address, buyer.route, buyer.phone].map((value) => String(value || '').toLowerCase());
+            return terms.some((value) => value.includes(searchNormalized));
+        })
+        : filteredByRoute;
 
     const groupedAll = buyers.reduce((acc, buyer) => {
         const route = buyer.route?.trim() || 'Unassigned';
@@ -319,6 +328,16 @@ export default function BuyerList() {
                         <span style={S.cardCount}>{filteredBuyers.length}</span>
                     </div>
 
+                    <div style={S.searchRow}>
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search buyers by name, address, route or phone"
+                            style={S.searchInput}
+                        />
+                    </div>
+
                     <div style={S.routeFilterRow}>
                         <button
                             type="button"
@@ -391,6 +410,12 @@ export default function BuyerList() {
                                                         <div className="responsive-list-actions" style={S.listActions}>
                                                             <span style={S.viewInvoicesLink}>View invoices →</span>
                                                             <div style={{ display: 'flex', gap: '6px' }}>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); navigate('/new', { state: { buyer } }); }}
+                                                                    style={S.invoiceBtn}
+                                                                >
+                                                                    Invoice
+                                                                </button>
                                                                 <button
                                                                     onClick={(e) => { e.stopPropagation(); navigate(`/buyers/edit/${buyer._id}`); }}
                                                                     style={S.editBtn}
@@ -495,6 +520,14 @@ const S = {
         transition: 'color 0.15s',
     },
 
+    searchRow: {
+        marginBottom: '18px',
+    },
+    searchInput: {
+        width: '100%', maxWidth: '420px', padding: '12px 16px',
+        background: 'var(--field-bg)', border: '1px solid var(--field-border)',
+        borderRadius: '12px', fontSize: '0.92rem', color: 'var(--text-primary)', outline: 'none',
+    },
     routeFilterRow: {
         display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'center',
     },
@@ -599,6 +632,11 @@ const S = {
     editBtn: {
         background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)',
         color: 'rgba(59,130,246,0.7)', padding: '4px 10px', borderRadius: '6px',
+        fontSize: '0.68rem', fontWeight: 500, cursor: 'pointer', letterSpacing: '0.3px',
+    },
+    invoiceBtn: {
+        background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)',
+        color: 'rgba(34,197,94,0.9)', padding: '4px 10px', borderRadius: '6px',
         fontSize: '0.68rem', fontWeight: 500, cursor: 'pointer', letterSpacing: '0.3px',
     },
     deleteBtn: {

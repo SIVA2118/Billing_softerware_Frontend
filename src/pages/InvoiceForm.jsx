@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { createInvoice, fetchInvoice, fetchInvoices, updateInvoice } from '../api/invoiceApi';
 import { fetchBuyers } from '../api/buyerApi.js';
@@ -30,6 +30,7 @@ const genInvoiceNo = (n) => { const now = new Date(); const s = now.getMonth() >
 export default function InvoiceForm() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const isEdit = Boolean(id);
     const [seller, setSeller] = useState(DEFAULT_SELLER);
     const [buyer, setBuyer] = useState(EMPTY_BUYER);
@@ -90,6 +91,19 @@ export default function InvoiceForm() {
         const m = buyers.find(b => b.name === buyer.name);
         if (m) setSelectedBuyerId(m._id);
     }, [buyers, buyer.name, selectedBuyerId]);
+
+    useEffect(() => {
+        if (!location.state?.buyer) return;
+        const sourceBuyer = location.state.buyer;
+        setBuyer({
+            name: sourceBuyer.name || '',
+            address: sourceBuyer.address || '',
+            route: sourceBuyer.route || '',
+            phone: sourceBuyer.phone || '',
+        });
+        if (sourceBuyer._id) setSelectedBuyerId(sourceBuyer._id);
+        navigate(location.pathname, { replace: true });
+    }, [location.state, location.pathname, navigate]);
 
     const recalc = (item) => {
         const qty = toNumber(item.qty2), rate = toNumber(item.rate);
