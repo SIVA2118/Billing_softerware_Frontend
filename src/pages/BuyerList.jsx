@@ -3,18 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import { deleteBuyer, fetchBuyers } from '../api/buyerApi.js';
-import { fetchRoutes, createRoute, deleteRoute } from '../api/routeApi.js';
+import { fetchRoutes } from '../api/routeApi.js';
 
 export default function BuyerList() {
     const navigate = useNavigate();
     const [buyers, setBuyers] = useState([]);
     const [routes, setRoutes] = useState([]);
-    const [selectedRoute, setSelectedRoute] = useState('All Routes');
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedRoute, setSelectedRoute] = useState('All Buyers');
     const [loading, setLoading] = useState(true);
     const [showRoutePanel, setShowRoutePanel] = useState(false);
-    const [newRouteName, setNewRouteName] = useState('');
-    const [savingRoute, setSavingRoute] = useState(false);
 
     useEffect(() => { loadAll(); }, []);
 
@@ -23,7 +21,7 @@ export default function BuyerList() {
             const [buyersRes, routesRes] = await Promise.all([fetchBuyers(), fetchRoutes()]);
             const sortedBuyers = (buyersRes.data.data || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             setBuyers(sortedBuyers);
-            setRoutes(routesRes.data.data);
+            setRoutes(routesRes.data.data || []);
         } catch {
             toast.error('Failed to load data');
         } finally {
@@ -46,7 +44,7 @@ export default function BuyerList() {
 
     const exportBuyerPdf = (label, data) => {
         if (!Array.isArray(data) || data.length === 0) {
-            toast.error('No buyers available to export for this route');
+            toast.error('No buyers available to export');
             return;
         }
 
@@ -57,8 +55,8 @@ export default function BuyerList() {
         const contentWidth = pageWidth - margin * 2;
         const lineHeight = 16;
         const safeText = (value) => (value && String(value).trim() ? String(value) : '—');
-        const routeLabel = label || 'All Routes';
-        const fileName = `${routeLabel}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all-routes';
+        const routeLabel = label || 'All Buyers';
+        const fileName = `${routeLabel}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'all-buyers';
 
         let y = 40;
         const now = new Date();
@@ -77,7 +75,7 @@ export default function BuyerList() {
                 doc.setFontSize(10);
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor('#cbd5e1');
-                doc.text(`Route: ${routeLabel}`, margin, 56);
+                doc.text(`Scope: ${routeLabel}`, margin, 56);
                 doc.text(`Generated: ${generatedAt}`, pageWidth - margin, 56, { align: 'right' });
             }
 
@@ -170,34 +168,23 @@ export default function BuyerList() {
         doc.save(`buyers-${fileName}.pdf`);
     };
 
+    const handleSelectRoute = (routeName) => {
+        if (!routeName) {
+            setSelectedRoute('All Buyers');
+            return;
+        }
+        setSelectedRoute(routeName);
+        setShowRoutePanel(true);
+    };
+
     const searchNormalized = String(searchQuery || '').trim().toLowerCase();
-    const filteredByRoute = selectedRoute === 'All Routes'
-        ? buyers
-        : buyers.filter((buyer) => (buyer.route?.trim() || 'Unassigned') === selectedRoute);
-
-    const filteredBuyers = searchNormalized
-        ? filteredByRoute.filter((buyer) => {
-            const terms = [buyer.name, buyer.address, buyer.route, buyer.phone].map((value) => String(value || '').toLowerCase());
-            return terms.some((value) => value.includes(searchNormalized));
-        })
-        : filteredByRoute;
-
-    const groupedAll = buyers.reduce((acc, buyer) => {
-        const route = buyer.route?.trim() || 'Unassigned';
-        if (!acc[route]) acc[route] = [];
-        acc[route].push(buyer);
-        return acc;
-    }, {});
-
-    const routeNames = Array.from(new Set([
-        ...routes.map((r) => r.name?.trim()).filter(Boolean),
-        ...Object.keys(groupedAll).filter((name) => name !== 'Unassigned'),
-    ]));
-
-    const routeKeys = routeNames.sort((a, b) => a.localeCompare(b));
-    if (groupedAll['Unassigned'] && !routeKeys.includes('Unassigned')) {
-        routeKeys.push('Unassigned');
-    }
+    const filteredBuyers = buyers.filter((buyer) => {
+        const routeMatch = selectedRoute === 'All Buyers' || String(buyer.route || 'Unassigned').trim() === selectedRoute;
+        if (!routeMatch) return false;
+        if (!searchNormalized) return true;
+        const terms = [buyer.name, buyer.address, buyer.route, buyer.phone].map((value) => String(value || '').toLowerCase());
+        return terms.some((value) => value.includes(searchNormalized));
+    });
 
     const handleDeleteBuyer = async (id, e) => {
         e.stopPropagation();
@@ -211,49 +198,6 @@ export default function BuyerList() {
         }
     };
 
-    const handleAddRoute = async (e) => {
-        e.preventDefault();
-        if (!newRouteName.trim()) { toast.error('Route name is required'); return; }
-        setSavingRoute(true);
-        try {
-            await createRoute({ name: newRouteName.trim() });
-            toast.success('Route created');
-            setNewRouteName('');
-            loadAll();
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to create route');
-        } finally {
-            setSavingRoute(false);
-        }
-    };
-
-    const handleDeleteRoute = async (id, name, e) => {
-        e.stopPropagation();
-        if (!window.confirm(`Delete route "${name}"?`)) return;
-        try {
-            await deleteRoute(id);
-            toast.success('Route deleted');
-            loadAll();
-        } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to delete route');
-        }
-    };
-
-    // Group buyers by their route
-    const grouped = filteredBuyers.reduce((acc, buyer) => {
-        const route = buyer.route?.trim() || 'Unassigned';
-        if (!acc[route]) acc[route] = [];
-        acc[route].push(buyer);
-        return acc;
-    }, {});
-
-    // Sort: named routes alphabetically, Unassigned last
-    const sortedRouteKeys = Object.keys(grouped).sort((a, b) => {
-        if (a === 'Unassigned') return 1;
-        if (b === 'Unassigned') return -1;
-        return a.localeCompare(b);
-    });
-
     return (
         <div className="page-shell" style={S.container}>
             <div className="page-header" style={S.header}>
@@ -262,17 +206,16 @@ export default function BuyerList() {
                     <p style={S.subtitle}>Manage buyers and view their invoice history</p>
                 </div>
                 <div style={S.headerActions}>
-                    <button type="button" onClick={() => exportBuyerPdf(selectedRoute, selectedRoute === 'All Routes' ? buyers : filteredBuyers)} style={S.exportBtn}>
+                    <button type="button" onClick={() => exportBuyerPdf('All Buyers', filteredBuyers)} style={S.exportBtn}>
                         ⬇ Export PDF
                     </button>
-                    <button type="button" onClick={() => setShowRoutePanel(v => !v)} style={S.routeBtn}>
-                        ◈ Manage Routes
+                    <button type="button" onClick={() => setShowRoutePanel((prev) => !prev)} style={S.routeBtn}>
+                        {showRoutePanel ? 'Hide Routes' : 'Manage Routes'}
                     </button>
                     <Link to="/buyers/new" style={S.addBtn}>+ Add Buyer</Link>
                 </div>
             </div>
 
-            {/* ── Route Management Panel ── */}
             {showRoutePanel && (
                 <div style={S.routePanel}>
                     <div style={S.routePanelTopLine} />
@@ -281,37 +224,26 @@ export default function BuyerList() {
                             <span style={S.routePanelTitle}>Route Management</span>
                             <span style={S.routeCount}>{routes.length} routes</span>
                         </div>
-
-                        {/* Add new route */}
-                        <form onSubmit={handleAddRoute} style={S.addRouteForm}>
-                            <input
-                                type="text"
-                                value={newRouteName}
-                                onChange={(e) => setNewRouteName(e.target.value)}
-                                placeholder="New route name (e.g. North Zone, Route A)…"
-                                style={S.routeInput}
-                            />
-                            <button type="submit" disabled={savingRoute} style={S.addRouteBtn}>
-                                {savingRoute ? 'Adding…' : '+ Add Route'}
-                            </button>
-                        </form>
-
-                        {/* Existing routes */}
                         {routes.length === 0 ? (
-                            <div style={S.noRoutes}>No routes yet. Add one above.</div>
+                            <div style={S.noRoutes}>No routes found.</div>
                         ) : (
                             <div style={S.routeTagsGrid}>
-                                {routes.map(r => (
-                                    <div key={r._id} style={S.routeTag}>
-                                        <span style={S.routeTagName}>◈ {r.name}</span>
-                                        <button
-                                            onClick={(e) => handleDeleteRoute(r._id, r.name, e)}
-                                            style={S.routeTagDelete}
-                                            title="Delete route"
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
+                                <button
+                                    type="button"
+                                    onClick={() => handleSelectRoute('All Buyers')}
+                                    style={selectedRoute === 'All Buyers' ? { ...S.routeTag, ...S.routeTagActive } : S.routeTag}
+                                >
+                                    <span style={S.routeTagName}>All Buyers</span>
+                                </button>
+                                {routes.map((route) => (
+                                    <button
+                                        key={route._id}
+                                        type="button"
+                                        onClick={() => handleSelectRoute(String(route.name || ''))}
+                                        style={selectedRoute === String(route.name || '') ? { ...S.routeTag, ...S.routeTagActive } : S.routeTag}
+                                    >
+                                        <span style={S.routeTagName}>{route.name}</span>
+                                    </button>
                                 ))}
                             </div>
                         )}
@@ -333,37 +265,11 @@ export default function BuyerList() {
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search buyers by name, address, route or phone"
+                            placeholder="Search buyers by name, address or phone"
                             style={S.searchInput}
                         />
                     </div>
 
-                    <div style={S.routeFilterRow}>
-                        <button
-                            type="button"
-                            onClick={() => setSelectedRoute('All Routes')}
-                            style={{
-                                ...S.routeFilterBtn,
-                                ...(selectedRoute === 'All Routes' ? S.routeFilterBtnActive : {}),
-                            }}
-                        >
-                            All Routes
-                        </button>
-                        {routeKeys.map((routeKey) => (
-                            <button
-                                key={routeKey}
-                                type="button"
-                                onClick={() => setSelectedRoute(routeKey)}
-                                style={{
-                                    ...S.routeFilterBtn,
-                                    ...(selectedRoute === routeKey ? S.routeFilterBtnActive : {}),
-                                }}
-                            >
-                                {routeKey}
-                                <span style={S.routeFilterCount}>{groupedAll[routeKey]?.length || 0}</span>
-                            </button>
-                        ))}
-                    </div>
 
                     {loading && <div style={S.stateText}>Loading…</div>}
                     {!loading && buyers.length === 0 && (
@@ -377,59 +283,52 @@ export default function BuyerList() {
                         <div style={S.listPane}>
                             <div style={S.listScroll}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                                    {sortedRouteKeys.map(routeKey => (
-                                        <div key={routeKey}>
-                                            <div style={S.routeGroupHeader}>
-                                                <span style={S.routeGroupIcon}>◈</span>
-                                                <span style={S.routeGroupName}>{routeKey}</span>
-                                                <span style={S.routeGroupCount}>{grouped[routeKey].length}</span>
-                                            </div>
-                                            <div style={S.list}>
-                                                {grouped[routeKey].map((buyer) => (
-                                                    <div
-                                                        key={buyer._id}
-                                                        className="responsive-list-item"
-                                                        style={S.listItem}
-                                                        onClick={() => navigate(`/?buyer=${encodeURIComponent(buyer.name)}`)}
-                                                    >
-                                                        <div style={S.buyerAvatar}>
-                                                            {(buyer.name || 'B').charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <div style={S.listBody}>
-                                                            <div style={S.buyerName}>{buyer.name}</div>
-                                                            {buyer.address && <div style={S.metaText}>{buyer.address}</div>}
-                                                            {buyer.createdAt && (
-                                                                <div style={S.createdAtText}>{formatBuyerCreatedAt(buyer.createdAt)}</div>
-                                                            )}
-                                                            {buyer.phone && (
-                                                                <div style={S.metaRow}>
-                                                                    <span style={S.metaBadge}>{buyer.phone}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="responsive-list-actions" style={S.listActions}>
-                                                            <span style={S.viewInvoicesLink}>View invoices →</span>
-                                                            <div style={{ display: 'flex', gap: '6px' }}>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); navigate('/new', { state: { buyer } }); }}
-                                                                    style={S.invoiceBtn}
-                                                                >
-                                                                    Invoice
-                                                                </button>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); navigate(`/buyers/edit/${buyer._id}`); }}
-                                                                    style={S.editBtn}
-                                                                >
-                                                                    Edit
-                                                                </button>
-                                                                <button onClick={(e) => handleDeleteBuyer(buyer._id, e)} style={S.deleteBtn}>Remove</button>
+                                    <div>
+                                        <div style={S.list}>
+                                            {filteredBuyers.map((buyer) => (
+                                                <div
+                                                    key={buyer._id}
+                                                    className="responsive-list-item"
+                                                    style={S.listItem}
+                                                    onClick={() => navigate(`/?buyer=${encodeURIComponent(buyer.name)}`)}
+                                                >
+                                                    <div style={S.buyerAvatar}>
+                                                        {(buyer.name || 'B').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div style={S.listBody}>
+                                                        <div style={S.buyerName}>{buyer.name}</div>
+                                                        {buyer.address && <div style={S.metaText}>{buyer.address}</div>}
+                                                        {buyer.createdAt && (
+                                                            <div style={S.createdAtText}>{formatBuyerCreatedAt(buyer.createdAt)}</div>
+                                                        )}
+                                                        {buyer.phone && (
+                                                            <div style={S.metaRow}>
+                                                                <span style={S.metaBadge}>{buyer.phone}</span>
                                                             </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="responsive-list-actions" style={S.listActions}>
+                                                        <span style={S.viewInvoicesLink}>View invoices →</span>
+                                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); navigate('/new', { state: { buyer } }); }}
+                                                                style={S.invoiceBtn}
+                                                            >
+                                                                Invoice
+                                                            </button>
+                                                            <button
+                                                                onClick={(e) => { e.stopPropagation(); navigate(`/buyers/edit/${buyer._id}`); }}
+                                                                style={S.editBtn}
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button onClick={(e) => handleDeleteBuyer(buyer._id, e)} style={S.deleteBtn}>Remove</button>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
+                                                </div>
+                                            ))}
                                         </div>
-                                    ))}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -450,14 +349,6 @@ const S = {
     },
     subtitle: { margin: 0, color: 'var(--text-muted)', fontSize: '0.78rem', letterSpacing: '0.3px' },
     headerActions: { display: 'flex', gap: '10px', alignItems: 'center' },
-    routeBtn: {
-        display: 'inline-flex', alignItems: 'center', gap: '6px',
-        background: 'linear-gradient(135deg, rgba(250,189,88,0.12), rgba(250,189,88,0.04))',
-        border: '1px solid rgba(250,189,88,0.25)', color: 'var(--gold)',
-        padding: '9px 18px', borderRadius: '9px',
-        fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
-        cursor: 'pointer',
-    },
     addBtn: {
         display: 'inline-flex', alignItems: 'center', gap: '6px',
         background: 'linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08))',
@@ -474,51 +365,44 @@ const S = {
         fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
         cursor: 'pointer',
     },
-
-    // Route panel
+    routeBtn: {
+        display: 'inline-flex', alignItems: 'center', gap: '6px',
+        background: 'linear-gradient(135deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08))',
+        border: '1px solid rgba(59,130,246,0.3)', color: '#3b82f6',
+        padding: '9px 18px', borderRadius: '9px',
+        fontWeight: 500, fontSize: '0.8rem', letterSpacing: '0.3px',
+        cursor: 'pointer',
+    },
     routePanel: {
         background: 'var(--surface-gradient)',
-        borderRadius: '16px', border: '1px solid rgba(250,189,88,0.15)',
+        borderRadius: '16px', border: '1px solid rgba(59,130,246,0.15)',
         overflow: 'hidden', boxShadow: 'var(--shadow-card)',
         marginBottom: '24px',
     },
-    routePanelTopLine: { height: '1px', background: 'linear-gradient(90deg, transparent, rgba(250,189,88,0.4), transparent)' },
-    routePanelInner: { padding: '24px' },
-    routePanelHeader: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' },
+    routePanelTopLine: { height: '1px', background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent)' },
+    routePanelInner: { padding: '20px 24px' },
+    routePanelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '16px' },
     routePanelTitle: { fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' },
     routeCount: {
-        background: 'rgba(250,189,88,0.08)', color: 'var(--gold)',
-        border: '1px solid rgba(250,189,88,0.15)',
-        borderRadius: '20px', padding: '2px 10px',
-        fontSize: '0.7rem', fontWeight: 600,
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        border: '1px solid rgba(59,130,246,0.15)',
+        borderRadius: '20px', padding: '4px 12px',
+        fontSize: '0.72rem', fontWeight: 600,
     },
-    addRouteForm: { display: 'flex', gap: '10px', marginBottom: '18px' },
-    routeInput: {
-        flex: 1, padding: '10px 14px',
-        background: 'var(--field-bg)', border: '1px solid var(--field-border)',
-        borderRadius: '9px', fontSize: '0.85rem', color: 'var(--text-primary)',
-        outline: 'none',
-    },
-    addRouteBtn: {
-        padding: '10px 18px', borderRadius: '9px',
-        background: 'linear-gradient(135deg, rgba(250,189,88,0.15), rgba(250,189,88,0.06))',
-        border: '1px solid rgba(250,189,88,0.25)', color: 'var(--gold)',
-        fontWeight: 500, fontSize: '0.8rem', cursor: 'pointer', letterSpacing: '0.3px',
-        whiteSpace: 'nowrap',
-    },
-    noRoutes: { color: 'var(--text-muted)', fontSize: '0.82rem', padding: '8px 0' },
-    routeTagsGrid: { display: 'flex', flexWrap: 'wrap', gap: '8px' },
+    noRoutes: { color: 'var(--text-muted)', fontSize: '0.9rem', padding: '12px 0' },
+    routeTagsGrid: { display: 'flex', flexWrap: 'wrap', gap: '10px' },
     routeTag: {
-        display: 'inline-flex', alignItems: 'center', gap: '8px',
-        background: 'rgba(250,189,88,0.06)', border: '1px solid rgba(250,189,88,0.15)',
-        borderRadius: '20px', padding: '5px 12px',
+        display: 'inline-flex', alignItems: 'center', padding: '10px 14px',
+        background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
+        borderRadius: '14px', color: '#1d4ed8', fontSize: '0.82rem',
+        cursor: 'pointer', outline: 'none',
     },
-    routeTagName: { color: 'var(--gold)', fontSize: '0.8rem', fontWeight: 500 },
-    routeTagDelete: {
-        background: 'transparent', border: 'none', color: 'rgba(250,189,88,0.4)',
-        cursor: 'pointer', fontSize: '1rem', lineHeight: 1, padding: '0 2px',
-        transition: 'color 0.15s',
+    routeTagActive: {
+        background: 'rgba(59,130,246,0.16)',
+        border: '1px solid rgba(37,99,235,0.35)',
+        color: '#1d4ed8',
     },
+    routeTagName: { fontWeight: 600 },
 
     searchRow: {
         marginBottom: '18px',
@@ -527,34 +411,6 @@ const S = {
         width: '100%', maxWidth: '420px', padding: '12px 16px',
         background: 'var(--field-bg)', border: '1px solid var(--field-border)',
         borderRadius: '12px', fontSize: '0.92rem', color: 'var(--text-primary)', outline: 'none',
-    },
-    routeFilterRow: {
-        display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'center',
-    },
-    routeFilterBtn: {
-        border: '1px solid rgba(255,255,255,0.08)',
-        background: 'rgba(255,255,255,0.03)',
-        color: 'var(--text-muted)',
-        padding: '8px 14px',
-        borderRadius: '999px',
-        fontSize: '0.78rem',
-        cursor: 'pointer',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        transition: 'all 0.15s ease',
-    },
-    routeFilterBtnActive: {
-        background: 'rgba(59,130,246,0.16)',
-        borderColor: 'rgba(59,130,246,0.4)',
-        color: '#3b82f6',
-    },
-    routeFilterCount: {
-        background: 'rgba(255,255,255,0.06)',
-        borderRadius: '999px',
-        padding: '1px 8px',
-        fontSize: '0.7rem',
-        color: 'var(--text-muted)',
     },
 
     // Buyer list card
@@ -583,23 +439,6 @@ const S = {
     },
 
     // Route group header
-    routeGroupHeader: {
-        display: 'flex', alignItems: 'center', gap: '10px',
-        marginBottom: '12px',
-        paddingBottom: '10px',
-        borderBottom: '1px solid var(--line-soft)',
-    },
-    routeGroupIcon: { color: 'var(--gold)', fontSize: '0.75rem', opacity: 0.6 },
-    routeGroupName: {
-        fontFamily: 'Cormorant Garamond, Georgia, serif',
-        fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px',
-    },
-    routeGroupCount: {
-        background: 'rgba(250,189,88,0.08)', color: 'var(--gold)',
-        border: '1px solid rgba(250,189,88,0.12)',
-        borderRadius: '20px', padding: '1px 8px', fontSize: '0.68rem', fontWeight: 600,
-    },
-
     list: { display: 'flex', flexDirection: 'column', gap: '8px' },
     listItem: {
         display: 'flex', alignItems: 'center', gap: '16px',
