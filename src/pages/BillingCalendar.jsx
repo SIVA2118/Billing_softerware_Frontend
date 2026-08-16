@@ -187,20 +187,22 @@ const BillingCalendar = () => {
             <div style={S.cardTopLine} />
             <div style={S.cardInner}>
               <div style={S.field} id="calendar-input">
-                <label style={S.label}>Select Date</label>
-                <div style={S.pickerWrapper} aria-label="Billing calendar">
-                  <DatePicker
-                    selected={selectedDate}
-                    onChange={(date) => setSelectedDate(date)}
-                    dateFormat="yyyy-MM-dd"
-                    inline
-                    showMonthDropdown
-                    showYearDropdown
-                    dropdownMode="select"
-                    calendarClassName="premium-datepicker-calendar"
-                    dayClassName={(date) => selectedDate && date.toDateString() === selectedDate.toDateString() ? 'premium-datepicker-day-selected' : undefined}
-                    shouldCloseOnSelect={false}
-                  />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <label style={S.label}>Select Date</label>
+                  <label style={S.pickerWrapper} aria-label="Billing calendar">
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      dateFormat="yyyy-MM-dd"
+                      inline
+                      showMonthDropdown
+                      showYearDropdown
+                      dropdownMode="select"
+                      calendarClassName="premium-datepicker-calendar"
+                      dayClassName={(date) => selectedDate && date.toDateString() === selectedDate.toDateString() ? 'premium-datepicker-day-selected' : undefined}
+                      shouldCloseOnSelect={false}
+                    />
+                  </label>
                 </div>
               </div>
             </div>

@@ -89,8 +89,8 @@ export default function ProductForm() {
                     <form onSubmit={handleSubmit} style={S.form}>
                         <FField label="Particulars" value={form.particulars} onChange={v => set('particulars', v)} required placeholder="e.g. Coconut Oil 1L" />
                         <div style={S.field}>
-                            <label style={S.label}>Category</label>
-                            <select style={S.selectInp} value={form.category} onChange={e => set('category', e.target.value)}>
+                            <label htmlFor="product_category" style={S.label}>Category</label>
+                                <select id="product_category" name="product_category" style={S.selectInp} value={form.category} onChange={e => set('category', e.target.value)}>
                                 <option value="" style={S.selectOptionMuted}>— Select category —</option>
                                 {categories.map(c => <option key={c._id} value={c.name} style={S.selectOption}>{c.name}</option>)}
                             </select>
@@ -117,8 +117,8 @@ export default function ProductForm() {
                         <div style={S.row}>
                             <FField label="Expiry Date" value={form.expiryDate} onChange={v => set('expiryDate', v)} type="date" />
                             <div style={S.field}>
-                                <label style={S.label}>Description</label>
-                                <textarea value={form.description} onChange={e => set('description', e.target.value)} style={{ ...S.inp, height: '80px', resize: 'vertical' }} placeholder="Optional description" />
+                                <label htmlFor="product_description" style={S.label}>Description</label>
+                                    <textarea id="product_description" name="product_description" value={form.description} onChange={e => set('description', e.target.value)} style={{ ...S.inp, height: '80px', resize: 'vertical' }} placeholder="Optional description" />
                             </div>
                         </div>
 
@@ -141,11 +141,23 @@ export default function ProductForm() {
     );
 }
 
-function FField({ label, value, onChange, type = 'text', required, placeholder = '' }) {
+function slugifyLabel(label) {
+    return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function FField({ label, name, value, onChange, type = 'text', required, placeholder = '' }) {
+    const nm = name || slugifyLabel(label);
+    const lc = nm.toLowerCase();
+    let auto = undefined;
+    if (lc.includes('phone') || lc.includes('tel')) auto = 'tel';
+    else if (lc.includes('email')) auto = 'email';
+    else if (lc.includes('name')) auto = 'name';
+    else if (lc.includes('address')) auto = 'street-address';
+
     return (
         <div style={S.field}>
-            <label style={S.label}>{label}{required && <span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span>}</label>
-            <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} required={required} style={S.inp} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.01' : undefined} />
+            <label htmlFor={nm} style={S.label}>{label}{required && <span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span>}</label>
+            <input id={nm} name={nm} type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} required={required} style={S.inp} min={type === 'number' ? '0' : undefined} step={type === 'number' ? '0.01' : undefined} autoComplete={auto} />
         </div>
     );
 }
@@ -153,8 +165,8 @@ function FField({ label, value, onChange, type = 'text', required, placeholder =
 function ReadField({ label, value }) {
     return (
         <div style={S.field}>
-            <label style={S.label}>{label}</label>
-            <input type="number" value={value} readOnly style={S.readInp} />
+            <label htmlFor={slugifyLabel(label)} style={S.label}>{label}</label>
+            <input id={slugifyLabel(label)} name={slugifyLabel(label)} type="number" value={value} readOnly style={S.readInp} />
         </div>
     );
 }

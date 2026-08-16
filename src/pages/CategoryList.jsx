@@ -54,13 +54,15 @@ export default function CategoryList() {
                         <div style={S.cardTitle}>New Category</div>
                         <form onSubmit={handleSubmit} style={S.form}>
                             <div style={S.field}>
-                                <label style={S.label}>Category Name</label>
-                                <input
-                                    type="text" value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    style={S.input} placeholder="e.g. Grocery, Beverages"
-                                    required
-                                />
+                                <label htmlFor="category_name" style={S.label}>Category Name</label>
+                                        <input
+                                            id="category_name"
+                                            name="category_name"
+                                            type="text" value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            style={S.input} placeholder="e.g. Grocery, Beverages"
+                                            required
+                                        />
                             </div>
                             <button type="submit" disabled={saving} style={S.submitBtn}>
                                 {saving ? 'Creating…' : '+ Create'}

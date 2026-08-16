@@ -56,6 +56,8 @@ export default function EmployeeList() {
 
             <div className="toolbar-row" style={S.toolbar}>
                 <input
+                    id="search_employees"
+                    name="search_employees"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search by Employee ID or Username"

@@ -74,13 +74,15 @@ export default function BuyerForm() {
 
                         {/* Route — dropdown */}
                         <div style={S.field}>
-                            <label style={S.label}>Route Name</label>
-                            <div style={S.inputWrap}>
-                                <select
-                                    value={formData.route}
-                                    onChange={(e) => set('route')(e.target.value)}
-                                    style={S.select}
-                                >
+                            <label htmlFor="route_name" style={S.label}>Route Name</label>
+                                <div style={S.inputWrap}>
+                                    <select
+                                        id="route_name"
+                                        name="route_name"
+                                        value={formData.route}
+                                        onChange={(e) => set('route')(e.target.value)}
+                                        style={S.select}
+                                    >
                                     <option value="" style={S.option}>— Select Route —</option>
                                     {routes.map(r => (
                                         <option key={r._id} value={r.name} style={S.option}>{r.name}</option>
@@ -116,14 +118,23 @@ export default function BuyerForm() {
 }
 
 function PremiumField({ label, value, onChange, required, placeholder }) {
+    const nm = String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    const lc = nm.toLowerCase();
+    let auto = undefined;
+    if (lc.includes('phone') || lc.includes('tel')) auto = 'tel';
+    else if (lc.includes('address')) auto = 'street-address';
+    else if (lc.includes('name')) auto = 'name';
     return (
         <div style={S.field}>
-            <label style={S.label}>{label}{required && <span style={S.req}> *</span>}</label>
+            <label htmlFor={nm} style={S.label}>{label}{required && <span style={S.req}> *</span>}</label>
             <input
+                id={nm}
+                name={nm}
                 type="text" value={value}
                 onChange={(e) => onChange(e.target.value)}
                 required={required} placeholder={placeholder || ''}
                 style={S.input}
+                autoComplete={auto}
             />
         </div>
     );

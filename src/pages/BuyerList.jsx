@@ -262,6 +262,8 @@ export default function BuyerList() {
 
                     <div style={S.searchRow}>
                         <input
+                            id="search_buyers"
+                            name="search_buyers"
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}

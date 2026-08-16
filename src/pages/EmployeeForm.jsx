@@ -47,20 +47,25 @@ export default function EmployeeForm() {
                 <div style={S.cardInner}>
                     <form onSubmit={handleSubmit} style={S.form}>
                         <div style={S.field}>
-                            <label style={S.label}>Username <span style={S.req}>*</span></label>
+                            <label htmlFor="username" style={S.label}>Username <span style={S.req}>*</span></label>
                             <input
+                                id="username"
+                                name="username"
                                 type="text"
                                 value={formData.username}
                                 onChange={(e) => setFormData((p) => ({ ...p, username: e.target.value }))}
                                 required
                                 style={S.input}
                                 placeholder="employee_username"
+                                autoComplete="username"
                             />
                         </div>
 
                         <div style={S.field}>
-                            <label style={S.label}>Password <span style={S.req}>*</span></label>
+                            <label htmlFor="password" style={S.label}>Password <span style={S.req}>*</span></label>
                             <input
+                                id="password"
+                                name="password"
                                 type="password"
                                 value={formData.password}
                                 onChange={(e) => setFormData((p) => ({ ...p, password: e.target.value }))}
@@ -68,6 +73,7 @@ export default function EmployeeForm() {
                                 minLength={6}
                                 style={S.input}
                                 placeholder="Minimum 6 characters"
+                                autoComplete="new-password"
                             />
                         </div>
 

@@ -80,28 +80,34 @@ export default function LoginPage({ onThemeToggle, setToken, setUser, theme }) {
 
                         <form onSubmit={handleLogin} style={S.form}>
                             <div style={S.field}>
-                                <label style={S.label}>Username</label>
+                                <label htmlFor="login_username" style={S.label}>Username</label>
                                 <div style={S.inputWrap}>
                                     <input
+                                        id="login_username"
+                                        name="login_username"
                                         type="text"
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
                                         style={S.input}
                                         placeholder="Enter username"
                                         required
+                                        autoComplete="username"
                                     />
                                 </div>
                             </div>
                             <div style={S.field}>
-                                <label style={S.label}>Password</label>
+                                <label htmlFor="login_password" style={S.label}>Password</label>
                                 <div style={S.inputWrap}>
                                     <input
+                                        id="login_password"
+                                        name="login_password"
                                         type="password"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         style={S.input}
                                         placeholder="••••••••••"
                                         required
+                                        autoComplete="current-password"
                                     />
                                 </div>
                             </div>

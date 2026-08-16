@@ -263,14 +263,17 @@ export default function InvoiceForm() {
                         <Field label="Adminid" value={currentAdminId || 'Not assigned'} readOnly />
                     )}
                     <div>
-                        <label style={S.fieldLabel}>Employee ID<span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span></label>
+                        <label htmlFor={slugifyLabel('Employee ID')} style={S.fieldLabel}>Employee ID<span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span></label>
                         <input
+                            id={slugifyLabel('Employee ID')}
+                            name={slugifyLabel('Employee ID')}
                             list="employee-id-list"
                             value={resolvedEmployeeId}
                             onChange={(e) => setSelectedEmployeeId(e.target.value.trim().toUpperCase())}
                             readOnly={currentUser?.role === 'employee'}
                             placeholder="Search employee ID"
                             style={S.inp}
+                            autoComplete="organization-employee-id"
                         />
                         <datalist id="employee-id-list">
                             {employees.map((emp) => (
@@ -284,28 +287,31 @@ export default function InvoiceForm() {
 
             <Section title="Seller Details">
                 <div className="responsive-grid-3" style={S.grid3}>
-                    <Field label="Seller Name" value={seller.name} onChange={v => setSeller(p => ({ ...p, name: v }))} required />
-                    <Field label="Address" value={seller.address} onChange={v => setSeller(p => ({ ...p, address: v }))} />
-                    <Field label="City" value={seller.city} onChange={v => setSeller(p => ({ ...p, city: v }))} />
-                    <Field label="State" value={seller.state} onChange={v => setSeller(p => ({ ...p, state: v }))} />
-                    <Field label="Pincode" value={seller.pincode} onChange={v => setSeller(p => ({ ...p, pincode: v }))} />
-                    <Field label="Phone" value={seller.phone} onChange={v => setSeller(p => ({ ...p, phone: v }))} />
-                    <Field label="GSTIN" value={seller.gstin} onChange={v => setSeller(p => ({ ...p, gstin: v }))} />
-                    <Field label="FSSAI No" value={seller.fssaiNo} onChange={v => setSeller(p => ({ ...p, fssaiNo: v }))} />
-                    <Field label="PAN" value={seller.pan} onChange={v => setSeller(p => ({ ...p, pan: v }))} />
+                    <Field name="seller_name" label="Seller Name" value={seller.name} onChange={v => setSeller(p => ({ ...p, name: v }))} required />
+                    <Field name="seller_address" label="Address" value={seller.address} onChange={v => setSeller(p => ({ ...p, address: v }))} />
+                    <Field name="seller_city" label="City" value={seller.city} onChange={v => setSeller(p => ({ ...p, city: v }))} />
+                    <Field name="seller_state" label="State" value={seller.state} onChange={v => setSeller(p => ({ ...p, state: v }))} />
+                    <Field name="seller_pincode" label="Pincode" value={seller.pincode} onChange={v => setSeller(p => ({ ...p, pincode: v }))} />
+                    <Field name="seller_phone" label="Phone" value={seller.phone} onChange={v => setSeller(p => ({ ...p, phone: v }))} />
+                    <Field name="seller_gstin" label="GSTIN" value={seller.gstin} onChange={v => setSeller(p => ({ ...p, gstin: v }))} />
+                    <Field name="seller_fssai_no" label="FSSAI No" value={seller.fssaiNo} onChange={v => setSeller(p => ({ ...p, fssaiNo: v }))} />
+                    <Field name="seller_pan" label="PAN" value={seller.pan} onChange={v => setSeller(p => ({ ...p, pan: v }))} />
                 </div>
             </Section>
 
             <Section title="Buyer Details">
                 <div className="responsive-grid-2" style={S.grid2}>
                     <div>
-                        <label style={S.fieldLabel}>Select Saved Buyer</label>
+                        <label htmlFor={slugifyLabel('Buyer Search')} style={S.fieldLabel}>Select Saved Buyer</label>
                         <input
+                            id={slugifyLabel('Buyer Search')}
+                            name={slugifyLabel('Buyer Search')}
                             list="buyer-list"
                             style={S.inp}
                             value={buyer.name}
                             onChange={(e) => handleBuyerSearchChange(e.target.value)}
                             placeholder="Search buyer name"
+                            autoComplete="shipping name"
                         />
                         <datalist id="buyer-list">
                             {buyers.map((b) => (
@@ -325,10 +331,10 @@ export default function InvoiceForm() {
                         </div>
                     </div>
                     <div />
-                    <Field label="Buyer Name" value={buyer.name} onChange={v => handleBuyerField('name', v)} required />
-                    <Field label="Address" value={buyer.address} onChange={v => handleBuyerField('address', v)} />
-                    <Field label="Route" value={buyer.route} onChange={v => handleBuyerField('route', v)} />
-                    <Field label="Phone" value={buyer.phone} onChange={v => handleBuyerField('phone', v)} />
+                    <Field name="buyer_name" label="Buyer Name" value={buyer.name} onChange={v => handleBuyerField('name', v)} required />
+                    <Field name="buyer_address" label="Address" value={buyer.address} onChange={v => handleBuyerField('address', v)} />
+                    <Field name="buyer_route" label="Route" value={buyer.route} onChange={v => handleBuyerField('route', v)} />
+                    <Field name="buyer_phone" label="Phone" value={buyer.phone} onChange={v => handleBuyerField('phone', v)} />
                 </div>
             </Section>
 
@@ -348,6 +354,8 @@ export default function InvoiceForm() {
                                     <td style={S.td}><span style={S.slno}>{idx + 1}</span></td>
                                     <td style={S.td}>
                                         <input
+                                            id={`items_${idx}_particulars`}
+                                            name={`items[${idx}].particulars`}
                                             list={`prod-${idx}`}
                                             style={{ ...S.inp, minWidth: '150px' }}
                                             value={item.particulars}
@@ -358,10 +366,10 @@ export default function InvoiceForm() {
                                             {products.map(p => <option key={p._id} value={p.particulars || p.name || ''} />)}
                                         </datalist>
                                     </td>
-                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.qty2} onChange={e => handleItemChange(idx, 'qty2', e.target.value)} placeholder="Qty" /></td>
-                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.freeQty} onChange={e => handleItemChange(idx, 'freeQty', e.target.value)} placeholder="Free" /></td>
-                                    <td style={S.td}><input style={{ ...S.inp, width: '80px' }} type="number" value={item.rate} onChange={e => handleItemChange(idx, 'rate', e.target.value)} /></td>
-                                    <td style={S.td}><input style={{ ...S.inp, width: '90px' }} type="number" value={item.grossAmt} onChange={e => handleItemChange(idx, 'grossAmt', e.target.value)} /></td>
+                                    <td style={S.td}><input id={`items_${idx}_qty2`} name={`items[${idx}].qty2`} style={{ ...S.inp, width: '80px' }} type="number" value={item.qty2} onChange={e => handleItemChange(idx, 'qty2', e.target.value)} placeholder="Qty" /></td>
+                                    <td style={S.td}><input id={`items_${idx}_freeQty`} name={`items[${idx}].freeQty`} style={{ ...S.inp, width: '80px' }} type="number" value={item.freeQty} onChange={e => handleItemChange(idx, 'freeQty', e.target.value)} placeholder="Free" /></td>
+                                    <td style={S.td}><input id={`items_${idx}_rate`} name={`items[${idx}].rate`} style={{ ...S.inp, width: '80px' }} type="number" value={item.rate} onChange={e => handleItemChange(idx, 'rate', e.target.value)} /></td>
+                                    <td style={S.td}><input id={`items_${idx}_grossAmt`} name={`items[${idx}].grossAmt`} style={{ ...S.inp, width: '90px' }} type="number" value={item.grossAmt} onChange={e => handleItemChange(idx, 'grossAmt', e.target.value)} /></td>
                                     <td style={S.td}><span style={S.calcVal}>{item.cgstPct || 0}%</span></td>
                                     <td style={S.td}><span style={S.calcVal}>₹{item.cgstAmt || 0}</span></td>
                                     <td style={S.td}><span style={S.calcVal}>{item.sgstPct || 0}%</span></td>
@@ -425,16 +433,35 @@ function Section({ title, children }) {
     );
 }
 
-function Field({ label, value, onChange, type = 'text', placeholder = '', required, readOnly = false }) {
+function slugifyLabel(label) {
+    return String(label || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function Field({ label, name, value, onChange, type = 'text', placeholder = '', required, readOnly = false }) {
+    const nm = name || slugifyLabel(label);
+    // Heuristic autocomplete mapping
+    const lc = nm.toLowerCase();
+    let auto = undefined;
+    if (lc.includes('phone') || lc.includes('tel')) auto = 'tel';
+    else if (lc.includes('pincode') || lc.includes('postal') || lc.includes('pin')) auto = 'postal-code';
+    else if (lc.includes('email')) auto = 'email';
+    else if (lc.includes('name')) auto = 'name';
+    else if (lc.includes('address')) auto = 'street-address';
+    else if (lc.includes('city')) auto = 'address-level2';
+    else if (lc.includes('state')) auto = 'address-level1';
+
     return (
         <div>
-            <label style={S.fieldLabel}>{label}{required && <span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span>}</label>
+            <label htmlFor={nm} style={S.fieldLabel}>{label}{required && <span style={{ color: 'rgba(248,113,113,0.5)' }}> *</span>}</label>
             <input
+                id={nm}
+                name={nm}
                 type={type} value={value || ''}
                 onChange={e => onChange && onChange(e.target.value)}
                 placeholder={placeholder}
                 readOnly={readOnly}
                 style={S.inp}
+                autoComplete={auto}
             />
         </div>
     );
