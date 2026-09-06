@@ -126,6 +126,7 @@ const generateBillingPdf = async (isoDate, invoices) => {
 
 const BillingCalendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
+  const [visibleMonth, setVisibleMonth] = useState(new Date());
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -192,7 +193,11 @@ const BillingCalendar = () => {
                   <label style={S.pickerWrapper} aria-label="Billing calendar">
                     <DatePicker
                       selected={selectedDate}
-                      onChange={(date) => setSelectedDate(date)}
+                      onChange={(date) => {
+                        setSelectedDate(date);
+                      }}
+                      onMonthChange={(date) => setVisibleMonth(date)}
+                      openToDate={visibleMonth}
                       dateFormat="yyyy-MM-dd"
                       inline
                       showMonthDropdown

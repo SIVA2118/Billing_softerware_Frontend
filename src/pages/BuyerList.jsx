@@ -5,12 +5,20 @@ import { jsPDF } from 'jspdf';
 import { deleteBuyer, fetchBuyers } from '../api/buyerApi.js';
 import { fetchRoutes } from '../api/routeApi.js';
 
+const SELECTED_ROUTE_STORAGE_KEY = 'billing_selected_route';
+const ROUTE_LOCK_STORAGE_KEY = 'billing_route_locked';
+
 export default function BuyerList() {
     const navigate = useNavigate();
     const [buyers, setBuyers] = useState([]);
     const [routes, setRoutes] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRoute, setSelectedRoute] = useState('All Buyers');
+    const [selectedRoute, setSelectedRoute] = useState(() => (
+        typeof window !== 'undefined' ? window.localStorage.getItem(SELECTED_ROUTE_STORAGE_KEY) || 'All Buyers' : 'All Buyers'
+    ));
+    const [routeLocked, setRouteLocked] = useState(() => (
+        typeof window !== 'undefined' && window.localStorage.getItem(ROUTE_LOCK_STORAGE_KEY) === 'true'
+    ));
     const [loading, setLoading] = useState(true);
     const [showRoutePanel, setShowRoutePanel] = useState(false);
 
@@ -169,12 +177,24 @@ export default function BuyerList() {
     };
 
     const handleSelectRoute = (routeName) => {
+        if (routeLocked) return;
         if (!routeName) {
             setSelectedRoute('All Buyers');
+            window.localStorage.setItem(SELECTED_ROUTE_STORAGE_KEY, 'All Buyers');
+            setRouteLocked(true);
+            window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'true');
             return;
         }
         setSelectedRoute(routeName);
+        window.localStorage.setItem(SELECTED_ROUTE_STORAGE_KEY, routeName);
+        setRouteLocked(true);
+        window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'true');
         setShowRoutePanel(true);
+    };
+
+    const handleUnlockRoute = () => {
+        setRouteLocked(false);
+        window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'false');
     };
 
     const searchNormalized = String(searchQuery || '').trim().toLowerCase();
@@ -217,32 +237,49 @@ export default function BuyerList() {
             </div>
 
             {showRoutePanel && (
-                <div style={S.routePanel}>
-                    <div style={S.routePanelTopLine} />
-                    <div style={S.routePanelInner}>
-                        <div style={S.routePanelHeader}>
-                            <span style={S.routePanelTitle}>Route Management</span>
-                            <span style={S.routeCount}>{routes.length} routes</span>
+                <div className="route-panel" style={S.routePanel}>
+                    <div className="route-panel-top-line" style={S.routePanelTopLine} />
+                    <div className="route-panel-inner" style={S.routePanelInner}>
+                        <div className="route-panel-header" style={S.routePanelHeader}>
+                            <div className="route-panel-header-left" style={S.routePanelHeaderLeft}>
+                                <span className="route-count" style={S.routeCount}>{routes.length} routes</span>
+                                <span className="route-panel-title" style={S.routePanelTitle}>Route Management</span>
+                            </div>
+                            <div className="route-panel-header-actions" style={S.routePanelHeaderActions}>
+                                {routeLocked && (
+                                    <button className="unlock-route-button" type="button" onClick={handleUnlockRoute} style={S.unlockBtn}>
+                                        Unlock Route
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         {routes.length === 0 ? (
-                            <div style={S.noRoutes}>No routes found.</div>
+                            <div style={{ ...S.noRoutes, ...S.routeListInner }}>No routes found.</div>
                         ) : (
-                            <div style={S.routeTagsGrid}>
+                            <div className="route-tags-grid" style={{ ...S.routeListInner, ...S.routeTagsGrid }}>
                                 <button
+                                    className={`route-tag${selectedRoute === 'All Buyers' ? ' route-tag-active' : ''}${routeLocked ? ' route-tag-locked' : ''}`}
                                     type="button"
                                     onClick={() => handleSelectRoute('All Buyers')}
-                                    style={selectedRoute === 'All Buyers' ? { ...S.routeTag, ...S.routeTagActive } : S.routeTag}
+                                    disabled={routeLocked}
+                                    style={selectedRoute === 'All Buyers'
+                                        ? { ...S.routeTag, ...S.routeTagActive, ...(routeLocked ? S.routeTagLocked : {}) }
+                                        : { ...S.routeTag, ...(routeLocked ? S.routeTagLocked : {}) }}
                                 >
-                                    <span style={S.routeTagName}>All Buyers</span>
+                                    <span className="route-tag-name" style={S.routeTagName}>All Buyers</span>
                                 </button>
                                 {routes.map((route) => (
                                     <button
+                                        className={`route-tag${selectedRoute === String(route.name || '') ? ' route-tag-active' : ''}${routeLocked ? ' route-tag-locked' : ''}`}
                                         key={route._id}
                                         type="button"
                                         onClick={() => handleSelectRoute(String(route.name || ''))}
-                                        style={selectedRoute === String(route.name || '') ? { ...S.routeTag, ...S.routeTagActive } : S.routeTag}
+                                        disabled={routeLocked}
+                                        style={selectedRoute === String(route.name || '')
+                                            ? { ...S.routeTag, ...S.routeTagActive, ...(routeLocked ? S.routeTagLocked : {}) }
+                                            : { ...S.routeTag, ...(routeLocked ? S.routeTagLocked : {}) }}
                                     >
-                                        <span style={S.routeTagName}>{route.name}</span>
+                                        <span className="route-tag-name" style={S.routeTagName}>{route.name}</span>
                                     </button>
                                 ))}
                             </div>
@@ -376,35 +413,52 @@ const S = {
         cursor: 'pointer',
     },
     routePanel: {
-        background: 'var(--surface-gradient)',
-        borderRadius: '16px', border: '1px solid rgba(59,130,246,0.15)',
-        overflow: 'hidden', boxShadow: 'var(--shadow-card)',
+        background: 'linear-gradient(145deg, #151c2a 0%, #080d16 100%)',
+        borderRadius: '24px', border: '1px solid rgba(76,125,190,0.62)',
+        overflow: 'hidden', boxShadow: '0 16px 36px rgba(0,0,0,0.42), inset 0 0 0 1px rgba(255,255,255,0.05)',
         marginBottom: '24px',
     },
-    routePanelTopLine: { height: '1px', background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent)' },
-    routePanelInner: { padding: '20px 24px' },
-    routePanelHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '16px' },
-    routePanelTitle: { fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' },
-    routeCount: {
-        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
-        border: '1px solid rgba(59,130,246,0.15)',
-        borderRadius: '20px', padding: '4px 12px',
-        fontSize: '0.72rem', fontWeight: 600,
+    routePanelTopLine: { height: '2px', background: 'linear-gradient(90deg, #1c4679, #9cc9ff 50%, #1c4679)' },
+    routePanelInner: { padding: 0 },
+    routePanelHeader: {
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '18px',
+        padding: '22px 28px', marginBottom: 0,
+        background: 'linear-gradient(105deg, #b9d4e9 0%, #7397b8 48%, #b3d0e7 100%)',
+        borderBottom: '1px solid rgba(18,43,70,0.9)',
+        boxShadow: 'inset 0 1px rgba(255,255,255,0.75), inset 0 -1px rgba(21,54,88,0.45)',
     },
-    noRoutes: { color: 'var(--text-muted)', fontSize: '0.9rem', padding: '12px 0' },
-    routeTagsGrid: { display: 'flex', flexWrap: 'wrap', gap: '10px' },
+    routePanelHeaderLeft: { display: 'flex', alignItems: 'center', gap: '18px', minWidth: 0 },
+    routePanelTitle: { fontSize: '1.05rem', fontWeight: 700, color: '#173452', letterSpacing: '1.1px', textTransform: 'uppercase', lineHeight: 1.25, textShadow: '0 1px rgba(255,255,255,0.35)' },
+    routePanelHeaderActions: { display: 'flex', alignItems: 'center', gap: '10px' },
+    routeCount: {
+        width: '92px', height: '92px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        background: 'radial-gradient(circle at 35% 25%, #2f4e70, #070c14 68%)', color: '#a9d5ff',
+        border: '3px solid #6399cc', borderRadius: '50%', padding: '8px',
+        fontSize: '1rem', lineHeight: 1.15, fontWeight: 600, textAlign: 'center',
+        boxShadow: '0 2px 0 #1c3652, 0 5px 12px rgba(0,0,0,0.3), inset 0 0 0 2px #101e2d',
+    },
+    unlockBtn: {
+        minWidth: '96px', minHeight: '58px', background: 'linear-gradient(145deg, #315b83, #152b43)', color: '#c5e5ff',
+        border: '2px solid #6599c5', borderRadius: '32px', padding: '8px 12px', fontSize: '0.72rem',
+        lineHeight: 1.2, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 0 #12263b, inset 0 0 0 2px rgba(8,19,31,0.75)',
+    },
+    noRoutes: { color: '#9fc1df', fontSize: '0.9rem' },
+    routeListInner: { padding: '26px 28px 32px' },
+    routeTagsGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '18px' },
     routeTag: {
-        display: 'inline-flex', alignItems: 'center', padding: '10px 14px',
-        background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.15)',
-        borderRadius: '14px', color: '#1d4ed8', fontSize: '0.82rem',
-        cursor: 'pointer', outline: 'none',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: '68px', padding: '12px 18px',
+        background: 'linear-gradient(145deg, #61768d 0%, #283b50 45%, #506a83 100%)', border: '3px solid #82a9cc',
+        borderRadius: '34px', color: '#e3f2ff', fontSize: '1rem', textShadow: '0 2px 2px rgba(0,0,0,0.7)',
+        boxShadow: '0 4px 0 #1c2d3e, 0 7px 12px rgba(0,0,0,0.32), inset 0 1px rgba(255,255,255,0.75), inset 0 -3px rgba(16,31,46,0.45)',
+        cursor: 'pointer', outline: 'none', transition: 'filter 0.15s, transform 0.15s',
     },
     routeTagActive: {
-        background: 'rgba(59,130,246,0.16)',
-        border: '1px solid rgba(37,99,235,0.35)',
-        color: '#1d4ed8',
+        background: 'linear-gradient(145deg, #8bd2ff 0%, #2f70aa 45%, #6fbcf0 100%)',
+        border: '3px solid #c9efff', color: '#f4fbff',
+        boxShadow: '0 4px 0 #1d4568, 0 0 18px rgba(82,177,245,0.72), inset 0 1px rgba(255,255,255,0.95)',
     },
-    routeTagName: { fontWeight: 600 },
+    routeTagLocked: { opacity: 0.62, cursor: 'not-allowed' },
+    routeTagName: { fontWeight: 600, whiteSpace: 'nowrap' },
 
     searchRow: {
         marginBottom: '18px',
