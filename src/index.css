@@ -319,10 +319,44 @@ input, select, textarea { font-family: var(--font-body); }
   background: rgba(255,255,255,0.08);
 }
 
+[data-theme='dark'] .premium-datepicker-calendar,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__header,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-container,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month {
+  background: var(--surface) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__current-month,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__navigation,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day-name,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-year-select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--outside-month {
+  color: var(--text-ghost) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--selected,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--keyboard-selected,
+[data-theme='dark'] .premium-datepicker-calendar .premium-datepicker-day-selected {
+  color: #111827 !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  background: var(--surface-2) !important;
+}
+
 .billing-calendar-layout {
   display: grid;
-  grid-template-columns: minmax(280px, 380px) minmax(280px, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(300px, 390px) minmax(360px, 1fr);
+  gap: 24px;
   align-items: start;
   width: 100%;
   max-width: 900px;
@@ -337,6 +371,11 @@ input, select, textarea { font-family: var(--font-body); }
 
 .billing-calendar-layout > * {
   min-width: 0;
+}
+
+.billing-calendar-layout > .billing-calendar-pane > .card,
+.billing-calendar-layout > .billing-details-pane > .card {
+  height: 100%;
 }
 
 .billing-details-header {
@@ -404,6 +443,17 @@ input, select, textarea { font-family: var(--font-body); }
 }
 
 @media (max-width: 720px) {
+  .page-shell#billing-calendar-page > div:first-child {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .page-shell#billing-calendar-page > div:first-child > div:last-child {
+    align-items: flex-start !important;
+    width: 100%;
+  }
+
   .billing-calendar-layout {
     gap: 10px;
     max-width: 100%;
