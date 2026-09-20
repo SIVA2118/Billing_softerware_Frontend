@@ -1,0 +1,765 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap');
+
+:root {
+  --obsidian: #0a0b0d;
+  --obsidian-2: #0e101a;
+  --surface: #13172a;
+  --surface-2: #181c30;
+  --surface-3: #1e2238;
+  --surface-raised: #232840;
+
+  --gold: #3b82f6;
+  --gold-light: #60a5fa;
+  --gold-pale: #bfdbfe;
+  --gold-dim: rgba(59,130,246,0.12);
+  --gold-glow: rgba(59,130,246,0.22);
+  --gold-border: rgba(59,130,246,0.25);
+
+  --text-primary: #ede8db;
+  --text-secondary: #a8a295;
+  --text-muted: #605a50;
+  --text-ghost: rgba(237,232,219,0.28);
+
+  --emerald: #34d399;
+  --emerald-dim: rgba(52,211,153,0.1);
+  --ruby: #f87171;
+  --ruby-dim: rgba(248,113,113,0.1);
+  --sapphire: #7dd3fc;
+  --sapphire-dim: rgba(125,211,252,0.1);
+  --amber: #60a5fa;
+  --amber-dim: rgba(96,165,250,0.1);
+
+  --sidebar-width: 260px;
+  --topbar-height: 64px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --radius-sm: 8px;
+
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+
+  --shadow-card: 0 4px 32px rgba(0,0,0,0.45), 0 1px 6px rgba(0,0,0,0.25);
+  --shadow-raised: 0 12px 48px rgba(0,0,0,0.6), 0 2px 12px rgba(0,0,0,0.3);
+  --shadow-gold: 0 0 24px rgba(59,130,246,0.12);
+  --surface-gradient: linear-gradient(145deg, #13172a 0%, #0e101a 100%);
+  --sidebar-gradient: linear-gradient(180deg, #0e101a 0%, #0a0c16 100%);
+  --glass-bg: rgba(10,11,13,0.85);
+  --overlay-bg: rgba(10,11,13,0.6);
+  --field-bg: rgba(255,255,255,0.03);
+  --field-border: rgba(59,130,246,0.1);
+  --line-soft: rgba(59,130,246,0.06);
+  --line-medium: rgba(59,130,246,0.12);
+  --line-strong: rgba(59,130,246,0.2);
+  --muted-border: rgba(255,255,255,0.06);
+  --table-row-border: rgba(255,255,255,0.03);
+  --top-line-gradient: linear-gradient(90deg, transparent, rgba(59,130,246,0.45), transparent);
+  --accent-button-bg: linear-gradient(135deg, rgba(59,130,246,0.2), rgba(59,130,246,0.08));
+  --accent-button-border: rgba(59,130,246,0.3);
+  --accent-chip-bg: linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(59,130,246,0.02) 100%);
+  --page-glow-left: rgba(59,130,246,0.06);
+  --page-glow-right: rgba(125,211,252,0.04);
+  --route-panel-bg: #13172a;
+  --route-panel-top-line: linear-gradient(90deg, transparent, #60a5fa 50%, transparent);
+  --route-header-bg: linear-gradient(105deg, #1e293b 0%, #334155 48%, #1e293b 100%);
+  --route-count-bg: radial-gradient(circle at 35% 25%, #2f4e70, #070c14 68%);
+  --route-count-text: #a9d5ff;
+  --route-count-border: #6399cc;
+  --route-count-shadow: 0 2px 0 #1c3652, 0 4px 9px rgba(0,0,0,0.26), inset 0 0 0 1px #101e2d;
+  --route-button-bg: linear-gradient(135deg, #315b83, #1d3858);
+  --route-button-text: #e0f2ff;
+  --route-button-border: #79a8d3;
+  --route-button-shadow: 0 3px 8px rgba(15,35,58,0.28), inset 0 1px rgba(255,255,255,0.25);
+
+  font-family: var(--font-body);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--obsidian);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme='light'] {
+  --obsidian: #f5efe1;
+  --obsidian-2: #fcf7ec;
+  --surface: #fffdfa;
+  --surface-2: #f7f0e4;
+  --surface-3: #efe4d2;
+  --surface-raised: #ffffff;
+
+  --gold: #1d4ed8;
+  --gold-light: #3b82f6;
+  --gold-pale: #93c5fd;
+  --gold-dim: rgba(37,99,235,0.12);
+  --gold-glow: rgba(37,99,235,0.14);
+  --gold-border: rgba(37,99,235,0.24);
+
+  --text-primary: #251d14;
+  --text-secondary: #5b5146;
+  --text-muted: #7a6e60;
+  --text-ghost: rgba(37,29,20,0.32);
+
+  --shadow-card: 0 8px 28px rgba(37,99,235,0.12), 0 2px 8px rgba(37,99,235,0.06);
+  --shadow-raised: 0 18px 48px rgba(37,99,235,0.14), 0 4px 14px rgba(37,99,235,0.08);
+  --shadow-gold: 0 0 20px rgba(37,99,235,0.08);
+  --surface-gradient: linear-gradient(145deg, #fffdfa 0%, #f7efdf 100%);
+  --sidebar-gradient: linear-gradient(180deg, #fffef9 0%, #f4ead6 100%);
+  --glass-bg: rgba(255,251,242,0.88);
+  --overlay-bg: rgba(79,61,31,0.22);
+  --field-bg: rgba(255,255,255,0.82);
+  --field-border: rgba(37,99,235,0.18);
+  --line-soft: rgba(37,99,235,0.08);
+  --line-medium: rgba(37,99,235,0.12);
+  --line-strong: rgba(37,99,235,0.2);
+  --muted-border: rgba(37,29,20,0.08);
+  --table-row-border: rgba(37,29,20,0.06);
+  --top-line-gradient: linear-gradient(90deg, transparent, rgba(37,99,235,0.4), transparent);
+  --accent-button-bg: linear-gradient(135deg, rgba(37,99,235,0.16), rgba(37,99,235,0.06));
+  --accent-button-border: rgba(37,99,235,0.28);
+  --accent-chip-bg: linear-gradient(135deg, rgba(37,99,235,0.12) 0%, rgba(37,99,235,0.03) 100%);
+  --page-glow-left: rgba(37,99,235,0.08);
+  --page-glow-right: rgba(125,211,252,0.08);
+  --route-panel-bg: #cbd5e1;
+  --route-panel-top-line: linear-gradient(90deg, #9dbbd6, #315d88 50%, #9dbbd6);
+  --route-header-bg: linear-gradient(105deg, #dcebf8 0%, #b8d0e6 48%, #e3f0fb 100%);
+  --route-count-bg: radial-gradient(circle at 35% 25%, #4d7ca7, #173452 68%);
+  --route-count-text: #e8f5ff;
+  --route-count-border: #6e9bc1;
+  --route-count-shadow: 0 2px 0 #315775, 0 5px 12px rgba(45,91,139,0.2), inset 0 0 0 2px #264766;
+  --route-button-bg: linear-gradient(145deg, #527da5, #294d70);
+  --route-button-text: #f1f8ff;
+  --route-button-border: #6c96b8;
+  --route-button-shadow: 0 3px 0 #29445f, inset 0 0 0 2px rgba(22,48,73,0.45);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+#root {
+  width: 100%;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.app-content-shell {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-main {
+  padding: 32px;
+  flex: 1;
+  width: 100%;
+  max-width: 1200px;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--obsidian);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 15% -5%, var(--page-glow-left) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 105%, var(--page-glow-right) 0%, transparent 55%);
+}
+
+@media (max-width: 640px) {
+  .route-panel-header {
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center !important;
+    padding: 18px !important;
+  }
+
+  .route-panel-header-left {
+    display: contents !important;
+  }
+
+  .route-panel-header-left > .route-count {
+    grid-column: 1;
+  }
+
+  .route-panel-header-left > .route-panel-title {
+    grid-column: 2;
+    margin: 0 8px;
+    font-size: 0.86rem !important;
+  }
+
+  .route-panel-header > .route-panel-header-actions {
+    grid-column: 3;
+  }
+
+  .route-tags-grid {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 18px !important;
+  }
+}
+
+[data-theme='light'] .route-panel {
+  background: var(--route-panel-bg) !important;
+  border-color: rgba(45, 91, 139, 0.35) !important;
+  box-shadow: 0 12px 28px rgba(45, 91, 139, 0.16), inset 0 0 0 1px rgba(255,255,255,0.8) !important;
+}
+
+[data-theme='light'] .route-panel-top-line {
+  background: var(--route-panel-top-line) !important;
+}
+
+[data-theme='light'] .route-panel-header {
+  background: var(--route-header-bg) !important;
+  border-bottom-color: rgba(45, 80, 113, 0.45) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,0.95), inset 0 -1px rgba(45,80,113,0.18) !important;
+}
+
+[data-theme='light'] .route-panel-title {
+  color: #173b5d !important;
+  text-shadow: none !important;
+}
+
+[data-theme='light'] .route-count {
+  background: var(--route-count-bg) !important;
+  color: var(--route-count-text) !important;
+  border-color: var(--route-count-border) !important;
+  box-shadow: var(--route-count-shadow) !important;
+}
+
+[data-theme='light'] .unlock-route-button {
+  background: var(--route-button-bg) !important;
+  color: var(--route-button-text) !important;
+  border-color: var(--route-button-border) !important;
+  box-shadow: var(--route-button-shadow) !important;
+}
+
+[data-theme='light'] .route-tags-grid {
+  background: transparent;
+}
+
+[data-theme='light'] .route-tags-grid button {
+  background: var(--surface) !important;
+  border-color: var(--muted-border) !important;
+  color: var(--text-primary) !important;
+  text-shadow: none !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme='light'] .route-tags-grid button.route-tag-active {
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.35) !important;
+  color: #2563eb !important;
+  box-shadow: 0 4px 14px rgba(59,130,246,0.12) !important;
+}
+
+[data-theme='light'] .route-tag-name {
+  color: inherit !important;
+}
+
+#root { width: 100%; }
+button { font-family: var(--font-body); cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+input, select, textarea { font-family: var(--font-body); }
+
+.premium-datepicker-calendar {
+  border-radius: 18px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--line-medium);
+  box-shadow: var(--shadow-card);
+}
+
+.premium-datepicker-calendar .react-datepicker__header {
+  background: transparent;
+  border-bottom: 1px solid var(--line-medium);
+  padding-bottom: 14px;
+}
+
+.premium-datepicker-calendar .react-datepicker__current-month,
+.premium-datepicker-calendar .react-datepicker__navigation,
+.premium-datepicker-calendar .react-datepicker__day-name,
+.premium-datepicker-calendar .react-datepicker__month-year-select,
+.premium-datepicker-calendar .react-datepicker__month-dropdown,
+.premium-datepicker-calendar .react-datepicker__year-dropdown,
+.premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+.premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  color: var(--text-primary);
+}
+
+.premium-datepicker-calendar .react-datepicker__day {
+  color: var(--text-secondary);
+  border-radius: 12px;
+  width: 42px;
+  line-height: 42px;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--keyboard-selected,
+.premium-datepicker-calendar .react-datepicker__day--selected,
+.premium-datepicker-day-selected {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #fff;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--today {
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.premium-datepicker-calendar .react-datepicker__day--outside-month {
+  color: rgba(237,232,219,0.25);
+}
+
+.premium-datepicker-calendar .react-datepicker__navigation:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+[data-theme='dark'] .premium-datepicker-calendar,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__header,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-container,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month {
+  background: var(--surface) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__current-month,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__navigation,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day-name,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-year-select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--outside-month {
+  color: var(--text-ghost) !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--selected,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__day--keyboard-selected,
+[data-theme='dark'] .premium-datepicker-calendar .premium-datepicker-day-selected {
+  color: #111827 !important;
+}
+
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__month-dropdown-container select,
+[data-theme='dark'] .premium-datepicker-calendar .react-datepicker__year-dropdown-container select {
+  background: var(--surface-2) !important;
+}
+
+.billing-calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, 390px) minmax(360px, 1fr);
+  gap: 24px;
+  align-items: start;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.billing-calendar-pane,
+.billing-details-pane {
+  width: 100%;
+  min-width: 0;
+}
+
+.billing-calendar-layout > * {
+  min-width: 0;
+}
+
+.billing-calendar-layout > .billing-calendar-pane > .card,
+.billing-calendar-layout > .billing-details-pane > .card {
+  height: 100%;
+}
+
+.billing-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.billing-export-btn {
+  min-width: 190px;
+}
+
+.premium-datepicker-calendar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box;
+  padding: 0 !important;
+}
+
+.premium-datepicker-calendar .react-datepicker__month-container,
+.premium-datepicker-calendar .react-datepicker__month {
+  width: 100% !important;
+}
+
+.premium-datepicker-calendar .react-datepicker__day-names,
+.premium-datepicker-calendar .react-datepicker__week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.premium-datepicker-calendar .react-datepicker__day-name,
+.premium-datepicker-calendar .react-datepicker__day {
+  width: auto !important;
+  line-height: 1.8;
+}
+
+@media (max-width: 1120px) {
+  .billing-calendar-layout {
+    grid-template-columns: 1fr;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .billing-details-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .billing-export-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .billing-calendar-layout {
+    gap: 18px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .premium-datepicker-calendar {
+    padding: 10px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell#billing-calendar-page > div:first-child {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+  }
+
+  .page-shell#billing-calendar-page > div:first-child > div:last-child {
+    align-items: flex-start !important;
+    width: 100%;
+  }
+
+  .billing-calendar-layout {
+    gap: 10px;
+    max-width: 100%;
+    margin: 0 auto;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    padding: 0 8px;
+  }
+
+  .billing-calendar-pane,
+  .billing-details-pane {
+    max-width: 100%;
+    min-width: 0 !important;
+  }
+
+  .billing-calendar-pane > .card,
+  .billing-details-pane > .card {
+    margin: 0 !important;
+  }
+
+  .premium-datepicker-calendar {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 4px !important;
+    box-sizing: border-box;
+    min-width: 0 !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__month-container,
+  .premium-datepicker-calendar .react-datepicker__month {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__header {
+    padding: 6px 6px 4px !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__current-month {
+    font-size: 0.95rem !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__day-name,
+  .premium-datepicker-calendar .react-datepicker__day {
+    font-size: 0.68rem;
+    width: 24px !important;
+    line-height: 24px !important;
+    padding: 0 !important;
+  }
+
+  .premium-datepicker-calendar .react-datepicker__day--selected,
+  .premium-datepicker-calendar .react-datepicker-day-selected {
+    border-radius: 6px !important;
+  }
+
+  .billing-export-btn {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+.app-overlay {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: var(--overlay-bg);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 95;
+}
+
+button,
+input,
+select,
+textarea {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-scroll table {
+  min-width: 680px;
+}
+
+.table-scroll.table-scroll-wide table {
+  min-width: 960px;
+}
+
+@media (max-width: 1024px) {
+  .app-content-shell {
+    margin-left: 0 !important;
+    min-width: 0;
+  }
+
+  .app-main {
+    max-width: 100% !important;
+    padding: 24px 20px !important;
+  }
+
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: var(--shadow-raised);
+  }
+
+  .app-sidebar.is-open {
+    transform: translateX(0);
+  }
+
+  .app-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .app-navbar {
+    padding: 0 20px !important;
+  }
+
+  .navbar-menu-toggle,
+  .sidebar-close-btn {
+    display: inline-flex !important;
+  }
+
+  .page-shell {
+    max-width: 100% !important;
+  }
+
+  .page-header,
+  .toolbar-row,
+  .detail-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .page-header-actions,
+  .form-actions,
+  .inline-actions {
+    flex-wrap: wrap;
+  }
+
+  .page-header-actions > a,
+  .page-header-actions > button,
+  .form-actions > a,
+  .form-actions > button,
+  .inline-actions > a,
+  .inline-actions > button {
+    justify-content: center;
+  }
+
+  .responsive-grid-2,
+  .responsive-grid-3,
+  .split-layout,
+  .dashboard-grid,
+  .responsive-party-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-row,
+  .responsive-row,
+  .responsive-list-item,
+  .login-page {
+    flex-direction: column !important;
+  }
+
+  .responsive-list-item {
+    align-items: flex-start !important;
+  }
+
+  .responsive-list-actions {
+    width: 100%;
+    align-items: flex-start !important;
+  }
+
+  .responsive-party-divider {
+    display: none !important;
+  }
+
+  .responsive-summary-panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .login-left,
+  .login-right {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .login-left {
+    padding: 48px 32px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(59,130,246,0.06);
+  }
+
+  .login-right {
+    padding: 40px 32px !important;
+    background: rgba(14,16,26,0.35) !important;
+  }
+
+  .login-card {
+    max-width: 560px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main {
+    padding: 20px 16px !important;
+  }
+
+  .app-navbar {
+    padding: 0 16px !important;
+  }
+
+  .page-title-display {
+    font-size: 1.75rem !important;
+    line-height: 1.15 !important;
+  }
+
+  .page-header-actions,
+  .form-actions,
+  .inline-actions {
+    width: 100%;
+  }
+
+  .page-header-actions > a,
+  .page-header-actions > button,
+  .form-actions > a,
+  .form-actions > button {
+    flex: 1 1 180px;
+    width: 100%;
+  }
+
+  .toolbar-row {
+    width: 100%;
+  }
+
+  .toolbar-row > * {
+    width: 100%;
+  }
+
+  .table-scroll {
+    margin: 0 -16px;
+    padding: 0 16px 8px;
+  }
+
+  .login-left {
+    padding: 40px 24px !important;
+  }
+
+  .login-right {
+    padding: 28px 16px !important;
+  }
+
+  .login-card {
+    max-width: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-navbar {
+    min-height: 64px;
+    height: auto !important;
+    gap: 12px;
+    padding: 12px 16px !important;
+  }
+
+  .navbar-breadcrumb {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .navbar-cta-label {
+    display: none;
+  }
+
+  .page-title-display {
+    font-size: 1.55rem !important;
+  }
+
+  .table-scroll table {
+    min-width: 620px;
+  }
+
+  .table-scroll.table-scroll-wide table {
+    min-width: 860px;
+  }
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(59,130,246,0.18); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(59,130,246,0.38); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes goldShimmer {
+  0% { background-position: -300% center; }
+  100% { background-position: 300% center; }
+}
