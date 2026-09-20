@@ -1,35 +1,37 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { jsPDF } from 'jspdf';
 import { deleteBuyer, fetchBuyers } from '../api/buyerApi.js';
-import { fetchRoutes } from '../api/routeApi.js';
 
 const SELECTED_ROUTE_STORAGE_KEY = 'billing_selected_route';
-const ROUTE_LOCK_STORAGE_KEY = 'billing_route_locked';
 
 export default function BuyerList() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [buyers, setBuyers] = useState([]);
-    const [routes, setRoutes] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRoute, setSelectedRoute] = useState(() => (
         typeof window !== 'undefined' ? window.localStorage.getItem(SELECTED_ROUTE_STORAGE_KEY) || 'All Buyers' : 'All Buyers'
     ));
-    const [routeLocked, setRouteLocked] = useState(() => (
-        typeof window !== 'undefined' && window.localStorage.getItem(ROUTE_LOCK_STORAGE_KEY) === 'true'
-    ));
     const [loading, setLoading] = useState(true);
-    const [showRoutePanel, setShowRoutePanel] = useState(false);
+    const [carouselIndex, setCarouselIndex] = useState(0);
 
     useEffect(() => { loadAll(); }, []);
 
     const loadAll = async () => {
         try {
-            const [buyersRes, routesRes] = await Promise.all([fetchBuyers(), fetchRoutes()]);
-            const sortedBuyers = (buyersRes.data.data || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            const buyersRes = await fetchBuyers();
+            const toBuyerTimestamp = (buyer) => {
+                const timestamp = new Date(buyer.createdAt).getTime();
+                return Number.isFinite(timestamp) ? timestamp : Infinity;
+            };
+            const sortedBuyers = (buyersRes.data.data || []).slice().sort((a, b) => {
+                const timeDifference = toBuyerTimestamp(a) - toBuyerTimestamp(b);
+                if (timeDifference !== 0) return timeDifference;
+                return String(a.name || '').localeCompare(String(b.name || ''));
+            });
             setBuyers(sortedBuyers);
-            setRoutes(routesRes.data.data || []);
         } catch {
             toast.error('Failed to load data');
         } finally {
@@ -176,27 +178,6 @@ export default function BuyerList() {
         doc.save(`buyers-${fileName}.pdf`);
     };
 
-    const handleSelectRoute = (routeName) => {
-        if (routeLocked) return;
-        if (!routeName) {
-            setSelectedRoute('All Buyers');
-            window.localStorage.setItem(SELECTED_ROUTE_STORAGE_KEY, 'All Buyers');
-            setRouteLocked(true);
-            window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'true');
-            return;
-        }
-        setSelectedRoute(routeName);
-        window.localStorage.setItem(SELECTED_ROUTE_STORAGE_KEY, routeName);
-        setRouteLocked(true);
-        window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'true');
-        setShowRoutePanel(true);
-    };
-
-    const handleUnlockRoute = () => {
-        setRouteLocked(false);
-        window.localStorage.setItem(ROUTE_LOCK_STORAGE_KEY, 'false');
-    };
-
     const searchNormalized = String(searchQuery || '').trim().toLowerCase();
     const filteredBuyers = buyers.filter((buyer) => {
         const routeMatch = selectedRoute === 'All Buyers' || String(buyer.route || 'Unassigned').trim() === selectedRoute;
@@ -205,6 +186,19 @@ export default function BuyerList() {
         const terms = [buyer.name, buyer.address, buyer.route, buyer.phone].map((value) => String(value || '').toLowerCase());
         return terms.some((value) => value.includes(searchNormalized));
     });
+
+    useEffect(() => {
+        setCarouselIndex((currentIndex) => Math.min(currentIndex, Math.max(filteredBuyers.length - 1, 0)));
+    }, [filteredBuyers.length]);
+
+    useEffect(() => {
+        const focusBuyerId = location.state?.focusBuyerId;
+        if (!focusBuyerId || !filteredBuyers.length) return;
+        const nextIndex = filteredBuyers.findIndex((buyer) => buyer._id === focusBuyerId);
+        if (nextIndex < 0) return;
+        setCarouselIndex(nextIndex);
+        navigate(location.pathname, { replace: true });
+    }, [filteredBuyers, location.pathname, location.state, navigate]);
 
     const handleDeleteBuyer = async (id, e) => {
         e.stopPropagation();
@@ -229,64 +223,9 @@ export default function BuyerList() {
                     <button type="button" onClick={() => exportBuyerPdf('All Buyers', filteredBuyers)} style={S.exportBtn}>
                         ⬇ Export PDF
                     </button>
-                    <button type="button" onClick={() => setShowRoutePanel((prev) => !prev)} style={S.routeBtn}>
-                        {showRoutePanel ? 'Hide Routes' : 'Manage Routes'}
-                    </button>
                     <Link to="/buyers/new" style={S.addBtn}>+ Add Buyer</Link>
                 </div>
             </div>
-
-            {showRoutePanel && (
-                <div className="route-panel" style={S.routePanel}>
-                    <div className="route-panel-top-line" style={S.routePanelTopLine} />
-                    <div className="route-panel-inner" style={S.routePanelInner}>
-                        <div className="route-panel-header" style={S.routePanelHeader}>
-                            <div className="route-panel-header-left" style={S.routePanelHeaderLeft}>
-                                <span className="route-count" style={S.routeCount}>{routes.length} routes</span>
-                                <span className="route-panel-title" style={S.routePanelTitle}>Route Management</span>
-                            </div>
-                            <div className="route-panel-header-actions" style={S.routePanelHeaderActions}>
-                                {routeLocked && (
-                                    <button className="unlock-route-button" type="button" onClick={handleUnlockRoute} style={S.unlockBtn}>
-                                        Unlock Route
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                        {routes.length === 0 ? (
-                            <div style={{ ...S.noRoutes, ...S.routeListInner }}>No routes found.</div>
-                        ) : (
-                            <div className="route-tags-grid" style={{ ...S.routeListInner, ...S.routeTagsGrid }}>
-                                <button
-                                    className={`route-tag${selectedRoute === 'All Buyers' ? ' route-tag-active' : ''}${routeLocked ? ' route-tag-locked' : ''}`}
-                                    type="button"
-                                    onClick={() => handleSelectRoute('All Buyers')}
-                                    disabled={routeLocked}
-                                    style={selectedRoute === 'All Buyers'
-                                        ? { ...S.routeTag, ...S.routeTagActive, ...(routeLocked ? S.routeTagLocked : {}) }
-                                        : { ...S.routeTag, ...(routeLocked ? S.routeTagLocked : {}) }}
-                                >
-                                    <span className="route-tag-name" style={S.routeTagName}>All Buyers</span>
-                                </button>
-                                {routes.map((route) => (
-                                    <button
-                                        className={`route-tag${selectedRoute === String(route.name || '') ? ' route-tag-active' : ''}${routeLocked ? ' route-tag-locked' : ''}`}
-                                        key={route._id}
-                                        type="button"
-                                        onClick={() => handleSelectRoute(String(route.name || ''))}
-                                        disabled={routeLocked}
-                                        style={selectedRoute === String(route.name || '')
-                                            ? { ...S.routeTag, ...S.routeTagActive, ...(routeLocked ? S.routeTagLocked : {}) }
-                                            : { ...S.routeTag, ...(routeLocked ? S.routeTagLocked : {}) }}
-                                    >
-                                        <span className="route-tag-name" style={S.routeTagName}>{route.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
 
             {/* ── Buyer List ── */}
             <div style={S.card}>
@@ -321,10 +260,22 @@ export default function BuyerList() {
                     {!loading && buyers.length > 0 && (
                         <div style={S.listPane}>
                             <div style={S.listScroll}>
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-                                    <div>
-                                        <div style={S.list}>
-                                            {filteredBuyers.map((buyer) => (
+                                {filteredBuyers.length === 0 ? (
+                                    <div style={S.stateText}>No buyers match your search.</div>
+                                ) : (
+                                    <div style={S.carouselShell}>
+                                        <button
+                                            type="button"
+                                            aria-label="Previous buyer"
+                                            onClick={() => setCarouselIndex((currentIndex) => Math.max(currentIndex - 1, 0))}
+                                            disabled={carouselIndex === 0}
+                                            style={{ ...S.carouselButton, ...(carouselIndex === 0 ? S.carouselButtonDisabled : {}) }}
+                                        >
+                                            ‹
+                                        </button>
+                                        <div style={S.listViewport}>
+                                            <div style={{ ...S.list, transform: `translateX(-${carouselIndex * 100}%)` }}>
+                                            {filteredBuyers.map((buyer, buyerIndex) => (
                                                 <div
                                                     key={buyer._id}
                                                     className="responsive-list-item"
@@ -348,9 +299,18 @@ export default function BuyerList() {
                                                     </div>
                                                     <div className="responsive-list-actions" style={S.listActions}>
                                                         <span style={S.viewInvoicesLink}>View invoices →</span>
-                                                        <div style={{ display: 'flex', gap: '6px' }}>
+                                                        <div style={S.actionButtons}>
                                                             <button
-                                                                onClick={(e) => { e.stopPropagation(); navigate('/new', { state: { buyer } }); }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    navigate('/new', {
+                                                                        state: {
+                                                                            buyer,
+                                                                            buyerQueue: filteredBuyers,
+                                                                            buyerIndex,
+                                                                        },
+                                                                    });
+                                                                }}
                                                                 style={S.invoiceBtn}
                                                             >
                                                                 Invoice
@@ -366,9 +326,19 @@ export default function BuyerList() {
                                                     </div>
                                                 </div>
                                             ))}
+                                            </div>
                                         </div>
+                                        <button
+                                            type="button"
+                                            aria-label="Next buyer"
+                                            onClick={() => setCarouselIndex((currentIndex) => Math.min(currentIndex + 1, filteredBuyers.length - 1))}
+                                            disabled={carouselIndex === filteredBuyers.length - 1}
+                                            style={{ ...S.carouselButton, ...(carouselIndex === filteredBuyers.length - 1 ? S.carouselButtonDisabled : {}) }}
+                                        >
+                                            ›
+                                        </button>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -431,31 +401,32 @@ const S = {
     routePanelTitle: { fontSize: '1.05rem', fontWeight: 700, color: '#173452', letterSpacing: '1.1px', textTransform: 'uppercase', lineHeight: 1.25, textShadow: '0 1px rgba(255,255,255,0.35)' },
     routePanelHeaderActions: { display: 'flex', alignItems: 'center', gap: '10px' },
     routeCount: {
-        width: '92px', height: '92px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        width: '64px', height: '64px', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         background: 'radial-gradient(circle at 35% 25%, #2f4e70, #070c14 68%)', color: '#a9d5ff',
-        border: '3px solid #6399cc', borderRadius: '50%', padding: '8px',
-        fontSize: '1rem', lineHeight: 1.15, fontWeight: 600, textAlign: 'center',
-        boxShadow: '0 2px 0 #1c3652, 0 5px 12px rgba(0,0,0,0.3), inset 0 0 0 2px #101e2d',
+        border: '2px solid #6399cc', borderRadius: '50%', padding: '6px',
+        fontSize: '0.78rem', lineHeight: 1.15, fontWeight: 600, textAlign: 'center',
+        boxShadow: '0 2px 0 #1c3652, 0 4px 9px rgba(0,0,0,0.26), inset 0 0 0 1px #101e2d',
     },
     unlockBtn: {
-        minWidth: '96px', minHeight: '58px', background: 'linear-gradient(145deg, #315b83, #152b43)', color: '#c5e5ff',
-        border: '2px solid #6599c5', borderRadius: '32px', padding: '8px 12px', fontSize: '0.72rem',
-        lineHeight: 1.2, fontWeight: 700, cursor: 'pointer', boxShadow: '0 3px 0 #12263b, inset 0 0 0 2px rgba(8,19,31,0.75)',
+        minWidth: 'auto', minHeight: '42px', background: 'linear-gradient(135deg, #315b83, #1d3858)', color: '#e0f2ff',
+        border: '1px solid #79a8d3', borderRadius: '10px', padding: '0 16px', fontSize: '0.75rem',
+        lineHeight: 1.2, fontWeight: 700, cursor: 'pointer', letterSpacing: '0.2px',
+        boxShadow: '0 3px 8px rgba(15,35,58,0.28), inset 0 1px rgba(255,255,255,0.25)',
     },
     noRoutes: { color: '#9fc1df', fontSize: '0.9rem' },
     routeListInner: { padding: '26px 28px 32px' },
     routeTagsGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: '18px' },
     routeTag: {
-        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: '68px', padding: '12px 18px',
-        background: 'linear-gradient(145deg, #61768d 0%, #283b50 45%, #506a83 100%)', border: '3px solid #82a9cc',
-        borderRadius: '34px', color: '#e3f2ff', fontSize: '1rem', textShadow: '0 2px 2px rgba(0,0,0,0.7)',
-        boxShadow: '0 4px 0 #1c2d3e, 0 7px 12px rgba(0,0,0,0.32), inset 0 1px rgba(255,255,255,0.75), inset 0 -3px rgba(16,31,46,0.45)',
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minHeight: '56px', padding: '12px 18px',
+        background: 'color-mix(in srgb, var(--surface) 92%, transparent)', border: '1px solid var(--muted-border)',
+        borderRadius: '10px', color: 'var(--text-primary)', fontSize: '0.9rem',
+        boxShadow: 'var(--shadow-card)',
         cursor: 'pointer', outline: 'none', transition: 'filter 0.15s, transform 0.15s',
     },
     routeTagActive: {
-        background: 'linear-gradient(145deg, #8bd2ff 0%, #2f70aa 45%, #6fbcf0 100%)',
-        border: '3px solid #c9efff', color: '#f4fbff',
-        boxShadow: '0 4px 0 #1d4568, 0 0 18px rgba(82,177,245,0.72), inset 0 1px rgba(255,255,255,0.95)',
+        background: 'rgba(59,130,246,0.1)',
+        border: '1px solid rgba(59,130,246,0.35)', color: '#2563eb',
+        boxShadow: '0 4px 14px rgba(59,130,246,0.12)',
     },
     routeTagLocked: { opacity: 0.62, cursor: 'not-allowed' },
     routeTagName: { fontWeight: 600, whiteSpace: 'nowrap' },
@@ -485,7 +456,7 @@ const S = {
     },
     cardHeader: { display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' },
     listPane: { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, gap: '16px' },
-    listScroll: { overflowY: 'auto', flex: 1, minHeight: 0, paddingRight: '6px', maxHeight: '100%' },
+    listScroll: { overflow: 'hidden', flex: 1, minHeight: 0, paddingRight: '6px', maxHeight: '100%' },
     cardTitle: { fontSize: '0.78rem', fontWeight: 600, color: 'var(--text-secondary)', letterSpacing: '0.5px', textTransform: 'uppercase' },
     cardCount: {
         background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
@@ -495,12 +466,23 @@ const S = {
     },
 
     // Route group header
-    list: { display: 'flex', flexDirection: 'column', gap: '8px' },
+    carouselShell: { display: 'flex', alignItems: 'center', gap: '12px', height: '100%' },
+    carouselButton: {
+        width: '38px', height: '58px', flexShrink: 0,
+        border: '1px solid rgba(59,130,246,0.24)', borderRadius: '10px',
+        background: 'rgba(59,130,246,0.08)', color: '#3b82f6',
+        fontSize: '2rem', lineHeight: 1, cursor: 'pointer',
+    },
+    carouselButtonDisabled: { opacity: 0.28, cursor: 'not-allowed' },
+    listViewport: { flex: '1 1 0', minWidth: 0, overflow: 'hidden' },
+    list: { display: 'flex', width: '100%', gap: '0', transition: 'transform 0.25s ease' },
     listItem: {
-        display: 'flex', alignItems: 'center', gap: '16px',
+        display: 'flex', flex: '0 0 100%', width: '100%', minWidth: 0, boxSizing: 'border-box',
+        flexDirection: 'column', alignItems: 'flex-start', gap: '16px',
         padding: '14px 16px',
         border: '1px solid var(--muted-border)',
         borderRadius: '10px', cursor: 'pointer',
+        position: 'relative',
         background: 'color-mix(in srgb, var(--surface) 92%, transparent)',
         transition: 'background 0.15s, border-color 0.15s',
     },
@@ -523,6 +505,7 @@ const S = {
     },
     createdAtText: { color: 'var(--text-muted)', fontSize: '0.72rem', marginTop: '2px' },
     listActions: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px', flexShrink: 0 },
+    actionButtons: { display: 'flex', gap: '6px', flexWrap: 'wrap', width: '100%' },
     viewInvoicesLink: { fontSize: '0.7rem', color: 'rgba(59,130,246,0.4)', letterSpacing: '0.3px' },
     editBtn: {
         background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.2)',
@@ -538,6 +521,7 @@ const S = {
         background: 'rgba(248,113,113,0.06)', border: '1px solid rgba(248,113,113,0.12)',
         color: 'rgba(248,113,113,0.5)', padding: '4px 10px', borderRadius: '6px',
         fontSize: '0.68rem', fontWeight: 500, cursor: 'pointer', letterSpacing: '0.3px',
+        position: 'absolute', top: '14px', right: '14px',
     },
     stateText: { color: 'var(--text-muted)', fontSize: '0.82rem' },
     emptyState: { padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' },

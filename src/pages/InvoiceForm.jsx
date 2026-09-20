@@ -9,6 +9,7 @@ import { fetchEmployees } from '../api/authApi';
 const EMPTY_ITEM = { slNo: 1, particulars: '', qty: '', qty2: '', freeQty: '', rate: '', grossAmt: '', cgstPct: 20, cgstAmt: '', sgstPct: 20, sgstAmt: '', total: '' };
 const DEFAULT_SELLER = { name: 'Shri Sastik Agencies', address: '2/572 Q2, Mudalaipalayam, Kangeyam Road (Via)', city: 'Tirupur', state: 'Tamil Nadu', pincode: '641606', phone: '7904125248', gstin: '33AFIFS1793R1Z6', fssaiNo: '12424027000669', pan: 'AFIFS1793R' };
 const EMPTY_BUYER = { name: '', address: '', route: '', phone: '' };
+const SELECTED_ROUTE_STORAGE_KEY = 'billing_selected_route';
 
 const toNumber = (v) => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
 const parseQtyLabel = (value) => {
@@ -38,6 +39,8 @@ export default function InvoiceForm() {
     const [employees, setEmployees] = useState([]);
     const [products, setProducts] = useState([]);
     const [selectedBuyerId, setSelectedBuyerId] = useState('');
+    const [buyerQueue, setBuyerQueue] = useState(() => location.state?.buyerQueue || []);
+    const [buyerQueueIndex, setBuyerQueueIndex] = useState(() => location.state?.buyerIndex ?? -1);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
     const [meta, setMeta] = useState({
         invoiceNo: '',
@@ -54,7 +57,14 @@ export default function InvoiceForm() {
     });
 
     useEffect(() => {
-        fetchBuyers().then(r => setBuyers(r.data.data)).catch(() => toast.error('Failed to load buyers'));
+        fetchBuyers().then(r => {
+            const selectedRoute = localStorage.getItem(SELECTED_ROUTE_STORAGE_KEY) || 'All Buyers';
+            const buyerList = r.data?.data || [];
+            const visibleBuyers = selectedRoute === 'All Buyers'
+                ? buyerList
+                : buyerList.filter((savedBuyer) => String(savedBuyer.route || 'Unassigned').trim() === selectedRoute);
+            setBuyers(visibleBuyers);
+        }).catch(() => toast.error('Failed to load buyers'));
         fetchEmployees().then(r => {
             const list = r.data?.data || [];
             setEmployees(list);
@@ -95,6 +105,16 @@ export default function InvoiceForm() {
     useEffect(() => {
         if (!location.state?.buyer) return;
         const sourceBuyer = location.state.buyer;
+        if (!isEdit) {
+            setMeta({ invoiceNo: '', invoiceDate: new Date().toISOString().slice(0, 10) });
+            setItems([{ ...EMPTY_ITEM }]);
+            fetchInvoices().then(r => {
+                const max = (r.data?.data || []).reduce((m, i) => Math.max(m, parseSeq(i.invoiceNo)), 0);
+                setMeta(p => p.invoiceNo ? p : { ...p, invoiceNo: genInvoiceNo(max + 1) });
+            }).catch(() => {});
+        }
+        setBuyerQueue(location.state.buyerQueue || []);
+        setBuyerQueueIndex(location.state.buyerIndex ?? -1);
         setBuyer({
             name: sourceBuyer.name || '',
             address: sourceBuyer.address || '',
@@ -103,7 +123,7 @@ export default function InvoiceForm() {
         });
         if (sourceBuyer._id) setSelectedBuyerId(sourceBuyer._id);
         navigate(location.pathname, { replace: true });
-    }, [location.state, location.pathname, navigate]);
+    }, [location.state, location.pathname, navigate, isEdit]);
 
     const recalc = (item) => {
         const qty = toNumber(item.qty2), rate = toNumber(item.rate);
@@ -237,7 +257,16 @@ export default function InvoiceForm() {
                 employeeName: selectedEmployee?.username || currentUser?.username || '',
             };
             if (isEdit) { await updateInvoice(id, payload); toast.success('Invoice updated'); }
-            else { await createInvoice(payload); toast.success('Invoice created'); }
+            else {
+                await createInvoice(payload);
+                const nextBuyer = buyerQueue[buyerQueueIndex + 1];
+                if (nextBuyer) {
+                    toast.success(`Invoice created. Next buyer: ${nextBuyer.name}`);
+                    navigate('/buyers', { state: { focusBuyerId: nextBuyer._id } });
+                    return;
+                }
+                toast.success('Invoice created');
+            }
             navigate('/');
         } catch (err) { toast.error(err.response?.data?.message || 'Save failed'); }
         finally { setSaving(false); }

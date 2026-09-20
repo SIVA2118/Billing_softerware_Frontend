@@ -7,6 +7,8 @@ const pageTitles = {
     '/products': 'Products',
     '/categories': 'Categories',
     '/buyers': 'Buyers',
+    '/routes': 'Manage Routes',
+    '/qr': 'Payment QR',
     '/buyers/new': 'Add Buyer',
 };
 

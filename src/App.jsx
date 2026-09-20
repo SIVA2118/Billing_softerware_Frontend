@@ -16,6 +16,8 @@ import EmployeeForm from './pages/EmployeeForm';
 import EmployeeList from './pages/EmployeeList';
 import BillAmountPage from './pages/BillAmountPage';
 import BillingCalendar from './pages/BillingCalendar';
+import RouteManagement from './pages/RouteManagement';
+import QrPage from './pages/QrPage';
 
 const routerFutureConfig = {
     v7_startTransition: true,
@@ -108,6 +110,8 @@ function App() {
                             <Route path="/products/new" element={<ProtectedRoute><ProductForm /></ProtectedRoute>} />
                             <Route path="/categories" element={<ProtectedRoute><CategoryList /></ProtectedRoute>} />
                             <Route path="/buyers" element={<ProtectedRoute><BuyerList /></ProtectedRoute>} />
+                            <Route path="/routes" element={<ProtectedRoute><RouteManagement /></ProtectedRoute>} />
+                            <Route path="/qr" element={<ProtectedRoute><QrPage /></ProtectedRoute>} />
                             <Route path="/buyers/new" element={<ProtectedRoute><BuyerForm /></ProtectedRoute>} />
                             <Route path="/buyers/edit/:id" element={<ProtectedRoute><BuyerForm /></ProtectedRoute>} />
                             <Route path="/employees" element={<ProtectedRoute><EmployeeList /></ProtectedRoute>} />

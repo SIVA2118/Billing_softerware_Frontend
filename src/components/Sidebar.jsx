@@ -14,6 +14,7 @@ const allNavItems = [
     ]},
     { group: 'CLIENTELE', items: [
         { to: '/buyers', label: 'Buyers', icon: '◉' },
+        { to: '/routes', label: 'Manage Routes', icon: '⌁' },
         { to: '/buyers/new', label: 'Add Buyer', icon: '⊞' },
     ]},
     { group: 'TEAM', items: [
@@ -34,7 +35,10 @@ export default function Sidebar({ isOpen, onClose, onLogout, onNavigate, user })
         : allNavItems;
 
     const handleLogout = () => { onLogout(); navigate('/login'); };
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => {
+        const [pathname, search = ''] = path.split('?');
+        return location.pathname === pathname && (search ? location.search === `?${search}` : !location.search);
+    };
 
     const displayName = user?.username || 'Administrator';
     const displayRole = user?.role === 'employee' ? 'Employee' : 'System Access';
@@ -85,6 +89,12 @@ export default function Sidebar({ isOpen, onClose, onLogout, onNavigate, user })
                         })}
                     </div>
                 ))}
+                <Link to="/qr" onClick={onNavigate} style={{ ...S.navLink, ...(location.pathname === '/qr' ? S.navLinkActive : {}) }}>
+                    {location.pathname === '/qr' && <div style={S.activeBar} />}
+                    <span style={{ ...S.navIcon, ...(location.pathname === '/qr' ? S.navIconActive : {}) }}>▣</span>
+                    <span style={location.pathname === '/qr' ? S.navLabelActive : S.navLabel}>QR</span>
+                    {location.pathname === '/qr' && <div style={S.activeDot} />}
+                </Link>
             </nav>
 
             {/* Footer */}
@@ -101,6 +111,7 @@ export default function Sidebar({ isOpen, onClose, onLogout, onNavigate, user })
                     Sign Out
                 </button>
             </div>
+
         </aside>
     );
 }
